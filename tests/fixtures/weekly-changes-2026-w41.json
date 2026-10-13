@@ -1,0 +1,36 @@
+{
+  "schema": 1,
+  "generatedAt": "2026-10-11T12:00:00.000Z",
+  "changes": [
+    {
+      "id": "2026-w41-robots",
+      "start": "2026-10-05T00:00:00.000Z",
+      "end": "2026-10-13T00:00:00.000Z",
+      "type": "robots",
+      "label": "Des robots stagiaires de Robotix arpentent les trottoirs.",
+      "share": 0.2
+    },
+    {
+      "id": "2026-w41-chatter",
+      "start": "2026-10-05T00:00:00.000Z",
+      "end": "2026-10-13T00:00:00.000Z",
+      "type": "chatter",
+      "label": "Les habitants trouvent que tout va trop vite.",
+      "lines": [
+        "Tout va trop vite.",
+        "Mon grille-pain a fait une mise à jour.",
+        "Un robot m’a tenu la porte. Avant que j’arrive.",
+        "Je veux bien le progrès, mais au pas.",
+        "Il m’a dit « bonne journée » en 0,2 seconde."
+      ]
+    },
+    {
+      "id": "2026-w41-billboard",
+      "start": "2026-10-05T00:00:00.000Z",
+      "end": "2026-10-13T00:00:00.000Z",
+      "type": "billboard",
+      "label": "Les panneaux de la ville appellent au calme.",
+      "text": "RALENTISSEZ"
+    }
+  ]
+}

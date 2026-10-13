@@ -1,0 +1,36 @@
+{
+  "schema": 1,
+  "generatedAt": "2026-10-13T12:00:00.000Z",
+  "changes": [
+    {
+      "id": "2026-w42-trafic",
+      "start": "2026-10-12T00:00:00.000Z",
+      "end": "2026-10-20T00:00:00.000Z",
+      "type": "traffic",
+      "label": "Transports perturbés : la circulation est plus dense.",
+      "factor": 1.4
+    },
+    {
+      "id": "2026-w42-pietons",
+      "start": "2026-10-12T00:00:00.000Z",
+      "end": "2026-10-20T00:00:00.000Z",
+      "type": "pedestrians",
+      "label": "Les trottoirs débordent de voyageurs à pied.",
+      "factor": 1.4
+    },
+    {
+      "id": "2026-w42-chatter",
+      "start": "2026-10-12T00:00:00.000Z",
+      "end": "2026-10-20T00:00:00.000Z",
+      "type": "chatter",
+      "label": "Les habitants attendent un bus qui ne vient pas.",
+      "lines": [
+        "Le bus est un concept.",
+        "J’attends depuis mardi.",
+        "À pied, au moins, j’arrive.",
+        "Quelqu’un va vers le centre ?",
+        "J’ai une carte d’abonnement et des regrets."
+      ]
+    }
+  ]
+}

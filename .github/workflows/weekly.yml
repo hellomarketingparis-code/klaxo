@@ -1,0 +1,53 @@
+# Chaque lundi : lit les flux d'actualité, génère la mission de la semaine, la valide, l'enregistre et republie le jeu.
+# Aucun secret n'est obligatoire. Pour faire réécrire les textes par une IA, ajoutez le secret ANTHROPIC_API_KEY
+# (dépôt → Settings → Secrets and variables → Actions). Sans lui, les modèles intégrés sont utilisés.
+name: Mission de la semaine
+
+on:
+  schedule:
+    - cron: '17 5 * * 1' # lundi 05:17 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+        env:
+          PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
+      - name: Générer la mission d'actualité
+        run: npm run weekly
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      - name: Valider toutes les données
+        run: npm run validate:data
+      - name: Journal de génération
+        if: always()
+        run: cat tools/weekly/logs/*.log || true
+      - name: Enregistrer les fichiers de la semaine
+        run: |
+          git config user.name "klaxo-bot"
+          git config user.email "klaxo-bot@users.noreply.github.com"
+          git add public/data
+          if git diff --cached --quiet; then
+            echo "Rien de nouveau cette semaine."
+          else
+            git commit -m "Mission de la semaine ($(date -u +%G-W%V))"
+            git push
+          fi
+
+  publish:
+    needs: generate
+    uses: ./.github/workflows/deploy.yml
+    with:
+      ref: main

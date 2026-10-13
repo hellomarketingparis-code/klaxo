@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Flux de test : contenus fictifs, utilisés uniquement par les tests automatisés. -->
+<rss version="2.0"><channel><title>Journal Alpha (fictif)</title>
+<item><title>Test : une panne informatique géante paralyse les caisses des supermarchés</title><link>https://example.org/alpha/panne</link><pubDate>Thu, 08 Oct 2026 08:00:00 GMT</pubDate></item>
+<item><title>Test : le festival de cinéma ouvre ses portes</title><link>https://example.org/alpha/festival</link><pubDate>Wed, 07 Oct 2026 10:00:00 GMT</pubDate></item>
+<item><title>Test : un séisme fait des victimes</title><link>https://example.org/alpha/seisme</link><pubDate>Wed, 07 Oct 2026 12:00:00 GMT</pubDate></item>
+<item><title>Test : vieille nouvelle sur les prix</title><link>https://example.org/alpha/vieux</link><pubDate>Tue, 01 Sep 2026 12:00:00 GMT</pubDate></item>
+</channel></rss>

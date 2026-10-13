@@ -1,0 +1,16 @@
+{
+  "comment": "Flux RSS publics consultés chaque semaine. Seuls le titre, la date, la source et le lien sont utilisés. Ajoutez ou retirez des flux librement.",
+  "feeds": [
+    { "source": "BBC News", "url": "https://feeds.bbci.co.uk/news/technology/rss.xml" },
+    { "source": "BBC News", "url": "https://feeds.bbci.co.uk/news/business/rss.xml" },
+    { "source": "BBC News", "url": "https://feeds.bbci.co.uk/news/science_and_environment/rss.xml" },
+    { "source": "The Guardian", "url": "https://www.theguardian.com/technology/rss" },
+    { "source": "The Guardian", "url": "https://www.theguardian.com/business/rss" },
+    { "source": "Le Monde", "url": "https://www.lemonde.fr/pixels/rss_full.xml" },
+    { "source": "Le Monde", "url": "https://www.lemonde.fr/economie/rss_full.xml" },
+    { "source": "franceinfo", "url": "https://www.francetvinfo.fr/titres.rss" },
+    { "source": "France 24", "url": "https://www.france24.com/fr/rss" },
+    { "source": "Ars Technica", "url": "https://feeds.arstechnica.com/arstechnica/index" },
+    { "source": "NPR", "url": "https://feeds.npr.org/1019/rss.xml" }
+  ]
+}

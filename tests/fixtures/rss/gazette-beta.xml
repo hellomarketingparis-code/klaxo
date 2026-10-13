@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Flux de test : contenus fictifs. Format Atom. -->
+<feed xmlns="http://www.w3.org/2005/Atom"><title>Gazette Beta (fictif)</title>
+<entry><title><![CDATA[Test : panne informatique géante, les caisses des supermarchés bloquées]]></title><link href="https://example.org/beta/panne"/><updated>2026-10-08T09:30:00Z</updated></entry>
+<entry><title>Test : la fusée décolle vers la Lune</title><link href="https://example.org/beta/fusee"/><updated>2026-10-06T09:30:00Z</updated></entry>
+<entry><title>Test : lien non sécurisé ignoré</title><link href="http://example.org/beta/http"/><updated>2026-10-06T09:30:00Z</updated></entry>
+</feed>

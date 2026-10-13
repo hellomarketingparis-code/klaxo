@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Fichier de missions KLAXO (story.json, weekly.json, archive/*.json)",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema": {
+      "const": 1
+    },
+    "generatedAt": {
+      "type": "string"
+    },
+    "missions": {
+      "type": "array",
+      "items": {
+        "$ref": "mission.schema.json"
+      }
+    }
+  },
+  "required": [
+    "schema",
+    "missions"
+  ]
+}

@@ -1,0 +1,115 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Table des événements de rue (world/events.json)",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema": {
+      "const": 1
+    },
+    "cooldown": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 2,
+      "items": {
+        "type": "number",
+        "minimum": 10,
+        "maximum": 3600
+      }
+    },
+    "offerSeconds": {
+      "type": "number",
+      "minimum": 15,
+      "maximum": 600
+    },
+    "events": {
+      "type": "array",
+      "maxItems": 40,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z0-9_-]{1,40}$"
+          },
+          "type": {
+            "enum": [
+              "breakdown",
+              "lift",
+              "courier",
+              "mystery_car",
+              "race",
+              "roadworks",
+              "lost_item",
+              "taxi_shift"
+            ]
+          },
+          "weight": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "districts": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "hills": {
+                "type": "number",
+                "minimum": 0
+              },
+              "business": {
+                "type": "number",
+                "minimum": 0
+              },
+              "downtown": {
+                "type": "number",
+                "minimum": 0
+              },
+              "oldtown": {
+                "type": "number",
+                "minimum": 0
+              },
+              "industrial": {
+                "type": "number",
+                "minimum": 0
+              }
+            },
+            "required": []
+          },
+          "minLevel": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 50
+          },
+          "reward": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 2000
+          },
+          "xp": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 500
+          },
+          "enabled": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "weight",
+          "reward",
+          "xp"
+        ]
+      }
+    }
+  },
+  "required": [
+    "schema",
+    "cooldown",
+    "offerSeconds",
+    "events"
+  ]
+}

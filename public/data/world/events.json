@@ -1,0 +1,15 @@
+{
+  "schema": 1,
+  "cooldown": [40, 85],
+  "offerSeconds": 70,
+  "events": [
+    { "id": "panne", "type": "breakdown", "weight": 3, "reward": 160, "xp": 35 },
+    { "id": "coup-de-main", "type": "lift", "weight": 3, "reward": 130, "xp": 30 },
+    { "id": "livreur", "type": "courier", "weight": 3, "districts": { "downtown": 1.5, "oldtown": 1.5, "hills": 0.4 }, "reward": 220, "xp": 45 },
+    { "id": "vehicule-mystere", "type": "mystery_car", "weight": 1.5, "minLevel": 2, "reward": 320, "xp": 60 },
+    { "id": "course", "type": "race", "weight": 2, "reward": 280, "xp": 55 },
+    { "id": "travaux", "type": "roadworks", "weight": 1.5, "reward": 0, "xp": 0 },
+    { "id": "objet-perdu", "type": "lost_item", "weight": 3, "reward": 120, "xp": 30 },
+    { "id": "taxi", "type": "taxi_shift", "weight": 2, "districts": { "downtown": 1.5, "business": 1.5 }, "reward": 360, "xp": 70 }
+  ]
+}

@@ -1,0 +1,234 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Changements hebdomadaires de la ville (world/weekly-changes.json)",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema": {
+      "const": 1
+    },
+    "generatedAt": {
+      "type": "string"
+    },
+    "changes": {
+      "type": "array",
+      "maxItems": 12,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z0-9_-]{1,40}$"
+          },
+          "type": {
+            "enum": [
+              "lighting",
+              "prices",
+              "robots",
+              "traffic",
+              "pedestrians",
+              "decor",
+              "chatter",
+              "billboard",
+              "lights_mode"
+            ]
+          },
+          "label": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "start": {
+            "type": "string"
+          },
+          "end": {
+            "type": "string"
+          },
+          "district": {
+            "enum": [
+              "hills",
+              "business",
+              "downtown",
+              "oldtown",
+              "industrial"
+            ]
+          },
+          "factor": {
+            "type": "number",
+            "minimum": 0.2,
+            "maximum": 3
+          },
+          "share": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 0.6
+          },
+          "kind": {
+            "enum": [
+              "garlands",
+              "banners",
+              "flags"
+            ]
+          },
+          "lines": {
+            "type": "array",
+            "maxItems": 12,
+            "items": {
+              "type": "string",
+              "maxLength": 80
+            }
+          },
+          "text": {
+            "type": "string",
+            "pattern": "^[A-Z0-9 !?+.-]{1,14}$"
+          },
+          "mode": {
+            "enum": [
+              "blink",
+              "normal"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "label",
+          "start",
+          "end"
+        ],
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "type": {
+                  "const": "lighting"
+                }
+              }
+            },
+            "then": {
+              "required": [
+                "factor"
+              ]
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "type": {
+                  "const": "prices"
+                }
+              }
+            },
+            "then": {
+              "required": [
+                "factor"
+              ]
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "type": {
+                  "const": "traffic"
+                }
+              }
+            },
+            "then": {
+              "required": [
+                "factor"
+              ]
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "type": {
+                  "const": "pedestrians"
+                }
+              }
+            },
+            "then": {
+              "required": [
+                "factor"
+              ]
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "type": {
+                  "const": "robots"
+                }
+              }
+            },
+            "then": {
+              "required": [
+                "share"
+              ]
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "type": {
+                  "const": "decor"
+                }
+              }
+            },
+            "then": {
+              "required": [
+                "kind"
+              ]
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "type": {
+                  "const": "chatter"
+                }
+              }
+            },
+            "then": {
+              "required": [
+                "lines"
+              ]
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "type": {
+                  "const": "billboard"
+                }
+              }
+            },
+            "then": {
+              "required": [
+                "text"
+              ]
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "type": {
+                  "const": "lights_mode"
+                }
+              }
+            },
+            "then": {
+              "required": [
+                "mode"
+              ]
+            }
+          }
+        ]
+      }
+    }
+  },
+  "required": [
+    "schema",
+    "changes"
+  ]
+}

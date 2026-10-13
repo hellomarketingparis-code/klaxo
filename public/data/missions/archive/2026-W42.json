@@ -1,0 +1,113 @@
+{
+  "schema": 1,
+  "generatedAt": "2026-10-13T12:00:00.000Z",
+  "missions": [
+    {
+      "schema": 1,
+      "id": "weekly-2026-w42-transport",
+      "kind": "weekly",
+      "title": "Tout le monde en taxi",
+      "summary": "Les transports sont à l’arrêt. La ville entière cherche un chauffeur. Tu as une voiture, donc une vocation.",
+      "giver": {
+        "name": "Jo la Dépêche",
+        "profile": "shopkeeper",
+        "at": {
+          "poi": "kiosk",
+          "dx": 2
+        }
+      },
+      "intro": [
+        {
+          "who": "giver",
+          "text": "Plus un bus, plus un tram. La moitié de la ville est coincée sur le trottoir."
+        },
+        {
+          "who": "player",
+          "text": "Et l’autre moitié ?"
+        },
+        {
+          "who": "giver",
+          "text": "Elle klaxonne. Prends une voiture et dépose trois naufragés. Ils paient en gratitude. Moi, en vrai argent."
+        }
+      ],
+      "steps": [
+        {
+          "type": "get_vehicle",
+          "objective": "Trouve un véhicule",
+          "checkpoint": true
+        },
+        {
+          "type": "passengers",
+          "objective": "Dépose les trois voyageurs bloqués",
+          "timeLimit": 270,
+          "onStart": [
+            {
+              "do": "world",
+              "set": "traffic",
+              "value": 1.5,
+              "seconds": 600
+            }
+          ],
+          "fares": [
+            {
+              "name": "Madame Correspondance",
+              "from": {
+                "poi": "gare"
+              },
+              "to": {
+                "poi": "hotel"
+              },
+              "profile": "tourist",
+              "line": "Mon train a deux jours de retard. J’ai fini mon livre. Deux fois."
+            },
+            {
+              "name": "Monsieur Pointeuse",
+              "from": {
+                "poi": "parc"
+              },
+              "to": {
+                "poi": "tour"
+              },
+              "profile": "employee",
+              "line": "Vite ! Ma réunion a commencé. Elle porte sur les retards."
+            },
+            {
+              "name": "Le contrôleur",
+              "from": {
+                "poi": "mairie"
+              },
+              "to": {
+                "poi": "gare"
+              },
+              "profile": "employee",
+              "line": "Vous avez votre titre de transport ? Pardon. Déformation professionnelle."
+            }
+          ]
+        }
+      ],
+      "punchline": {
+        "title": "Service minimum",
+        "text": "Le trafic reprendra « progressivement ». Le dictionnaire de la ville précise : progressivement, adverbe, synonyme de « un jour »."
+      },
+      "outro": [
+        {
+          "who": "giver",
+          "text": "Tu as transporté plus de monde que la ligne 3 ce mois-ci. Bravo."
+        }
+      ],
+      "reward": {
+        "money": 900,
+        "xp": 180
+      },
+      "news": {
+        "headline": "Grève nationale du 17 octobre : à quoi faut-il s'attendre dans les transports ?",
+        "source": "DéplacementsPros",
+        "url": "https://www.deplacementspros.com/transport/greve-nationale-du-17-octobre-a-quoi-faut-il-s-attendre",
+        "date": "2026-10-09T00:00:00.000Z",
+        "category": "transport"
+      },
+      "publishedAt": "2026-10-12T00:00:00.000Z",
+      "expiresAt": "2026-10-20T00:00:00.000Z"
+    }
+  ]
+}

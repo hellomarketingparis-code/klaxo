@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "items": [
+    {
+      "id": "weekly-2026-w42-transport",
+      "title": "Tout le monde en taxi",
+      "week": "2026-W42",
+      "file": "2026-W42.json",
+      "headline": "Grève nationale du 17 octobre : à quoi faut-il s'attendre dans les transports ?"
+    },
+    {
+      "id": "weekly-2026-w41-ai",
+      "title": "Ralentissez, Robotix !",
+      "week": "2026-W41",
+      "file": "2026-W41.json",
+      "headline": "Most Americans think artificial intelligence is developing too fast, new AP-NORC poll finds"
+    }
+  ]
+}

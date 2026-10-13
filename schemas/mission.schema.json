@@ -1,0 +1,1655 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://klaxo.example/schemas/mission.schema.json",
+  "title": "Mission KLAXO",
+  "description": "Une mission (histoire, actualité hebdomadaire ou événement de rue). Le moteur ne connaît que les mécaniques listées ici.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema": {
+      "const": 1
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9_-]{1,59}$"
+    },
+    "kind": {
+      "enum": [
+        "story",
+        "weekly",
+        "side"
+      ]
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 60,
+      "pattern": "^[^<>]*$"
+    },
+    "summary": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 220,
+      "pattern": "^[^<>]*$"
+    },
+    "giver": {
+      "$ref": "#/$defs/npc"
+    },
+    "intro": {
+      "type": "array",
+      "maxItems": 10,
+      "items": {
+        "$ref": "#/$defs/line"
+      }
+    },
+    "setup": {
+      "$ref": "#/$defs/actions"
+    },
+    "steps": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 12,
+      "items": {
+        "oneOf": [
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "type": {
+                "const": "talk"
+              },
+              "objective": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 110,
+                "pattern": "^[^<>]*$"
+              },
+              "timeLimit": {
+                "type": "number",
+                "minimum": 10,
+                "maximum": 900
+              },
+              "failIf": {
+                "type": "array",
+                "items": {
+                  "enum": [
+                    "detected",
+                    "wanted"
+                  ]
+                }
+              },
+              "onStart": {
+                "$ref": "#/$defs/actions"
+              },
+              "onComplete": {
+                "$ref": "#/$defs/actions"
+              },
+              "checkpoint": {
+                "type": "boolean"
+              },
+              "events": {
+                "type": "array",
+                "maxItems": 8,
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "at": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 900
+                    },
+                    "do": {
+                      "$ref": "#/$defs/actions"
+                    }
+                  },
+                  "required": [
+                    "at",
+                    "do"
+                  ]
+                }
+              },
+              "npc": {
+                "$ref": "#/$defs/npc"
+              },
+              "tag": {
+                "type": "string",
+                "pattern": "^[a-z0-9][a-z0-9_-]{1,59}$"
+              },
+              "lines": {
+                "type": "array",
+                "maxItems": 10,
+                "items": {
+                  "$ref": "#/$defs/line"
+                }
+              }
+            },
+            "required": [
+              "type",
+              "objective",
+              "npc",
+              "lines"
+            ]
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "type": {
+                "const": "goto"
+              },
+              "objective": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 110,
+                "pattern": "^[^<>]*$"
+              },
+              "timeLimit": {
+                "type": "number",
+                "minimum": 10,
+                "maximum": 900
+              },
+              "failIf": {
+                "type": "array",
+                "items": {
+                  "enum": [
+                    "detected",
+                    "wanted"
+                  ]
+                }
+              },
+              "onStart": {
+                "$ref": "#/$defs/actions"
+              },
+              "onComplete": {
+                "$ref": "#/$defs/actions"
+              },
+              "checkpoint": {
+                "type": "boolean"
+              },
+              "events": {
+                "type": "array",
+                "maxItems": 8,
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "at": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 900
+                    },
+                    "do": {
+                      "$ref": "#/$defs/actions"
+                    }
+                  },
+                  "required": [
+                    "at",
+                    "do"
+                  ]
+                }
+              },
+              "target": {
+                "$ref": "#/$defs/loc"
+              },
+              "radius": {
+                "type": "number",
+                "minimum": 1,
+                "maximum": 30
+              },
+              "mode": {
+                "enum": [
+                  "any",
+                  "foot",
+                  "vehicle"
+                ]
+              }
+            },
+            "required": [
+              "type",
+              "objective",
+              "target"
+            ]
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "type": {
+                "const": "pickup"
+              },
+              "objective": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 110,
+                "pattern": "^[^<>]*$"
+              },
+              "timeLimit": {
+                "type": "number",
+                "minimum": 10,
+                "maximum": 900
+              },
+              "failIf": {
+                "type": "array",
+                "items": {
+                  "enum": [
+                    "detected",
+                    "wanted"
+                  ]
+                }
+              },
+              "onStart": {
+                "$ref": "#/$defs/actions"
+              },
+              "onComplete": {
+                "$ref": "#/$defs/actions"
+              },
+              "checkpoint": {
+                "type": "boolean"
+              },
+              "events": {
+                "type": "array",
+                "maxItems": 8,
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "at": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 900
+                    },
+                    "do": {
+                      "$ref": "#/$defs/actions"
+                    }
+                  },
+                  "required": [
+                    "at",
+                    "do"
+                  ]
+                }
+              },
+              "target": {
+                "$ref": "#/$defs/loc"
+              },
+              "item": {
+                "$ref": "#/$defs/item"
+              }
+            },
+            "required": [
+              "type",
+              "objective",
+              "target",
+              "item"
+            ]
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "type": {
+                "const": "get_vehicle"
+              },
+              "objective": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 110,
+                "pattern": "^[^<>]*$"
+              },
+              "timeLimit": {
+                "type": "number",
+                "minimum": 10,
+                "maximum": 900
+              },
+              "failIf": {
+                "type": "array",
+                "items": {
+                  "enum": [
+                    "detected",
+                    "wanted"
+                  ]
+                }
+              },
+              "onStart": {
+                "$ref": "#/$defs/actions"
+              },
+              "onComplete": {
+                "$ref": "#/$defs/actions"
+              },
+              "checkpoint": {
+                "type": "boolean"
+              },
+              "events": {
+                "type": "array",
+                "maxItems": 8,
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "at": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 900
+                    },
+                    "do": {
+                      "$ref": "#/$defs/actions"
+                    }
+                  },
+                  "required": [
+                    "at",
+                    "do"
+                  ]
+                }
+              },
+              "vehicle": {
+                "enum": [
+                  "compact",
+                  "sedan",
+                  "sport",
+                  "taxi",
+                  "van",
+                  "truck",
+                  "police"
+                ]
+              }
+            },
+            "required": [
+              "type",
+              "objective"
+            ]
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "type": {
+                "const": "deliver"
+              },
+              "objective": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 110,
+                "pattern": "^[^<>]*$"
+              },
+              "timeLimit": {
+                "type": "number",
+                "minimum": 10,
+                "maximum": 900
+              },
+              "failIf": {
+                "type": "array",
+                "items": {
+                  "enum": [
+                    "detected",
+                    "wanted"
+                  ]
+                }
+              },
+              "onStart": {
+                "$ref": "#/$defs/actions"
+              },
+              "onComplete": {
+                "$ref": "#/$defs/actions"
+              },
+              "checkpoint": {
+                "type": "boolean"
+              },
+              "events": {
+                "type": "array",
+                "maxItems": 8,
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "at": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 900
+                    },
+                    "do": {
+                      "$ref": "#/$defs/actions"
+                    }
+                  },
+                  "required": [
+                    "at",
+                    "do"
+                  ]
+                }
+              },
+              "target": {
+                "$ref": "#/$defs/loc"
+              },
+              "radius": {
+                "type": "number",
+                "minimum": 1,
+                "maximum": 30
+              },
+              "mode": {
+                "enum": [
+                  "any",
+                  "foot",
+                  "vehicle"
+                ]
+              },
+              "item": {
+                "$ref": "#/$defs/item"
+              },
+              "fragile": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "max": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 20
+                  }
+                },
+                "required": [
+                  "max"
+                ]
+              }
+            },
+            "required": [
+              "type",
+              "objective",
+              "target"
+            ]
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "type": {
+                "const": "tail"
+              },
+              "objective": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 110,
+                "pattern": "^[^<>]*$"
+              },
+              "timeLimit": {
+                "type": "number",
+                "minimum": 10,
+                "maximum": 900
+              },
+              "failIf": {
+                "type": "array",
+                "items": {
+                  "enum": [
+                    "detected",
+                    "wanted"
+                  ]
+                }
+              },
+              "onStart": {
+                "$ref": "#/$defs/actions"
+              },
+              "onComplete": {
+                "$ref": "#/$defs/actions"
+              },
+              "checkpoint": {
+                "type": "boolean"
+              },
+              "events": {
+                "type": "array",
+                "maxItems": 8,
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "at": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 900
+                    },
+                    "do": {
+                      "$ref": "#/$defs/actions"
+                    }
+                  },
+                  "required": [
+                    "at",
+                    "do"
+                  ]
+                }
+              },
+              "vehicle": {
+                "enum": [
+                  "compact",
+                  "sedan",
+                  "sport",
+                  "taxi",
+                  "van",
+                  "truck",
+                  "police"
+                ]
+              },
+              "color": {
+                "type": "string",
+                "pattern": "^#[0-9a-fA-F]{6}$"
+              },
+              "route": {
+                "type": "array",
+                "minItems": 2,
+                "maxItems": 8,
+                "items": {
+                  "$ref": "#/$defs/loc"
+                }
+              },
+              "speed": {
+                "type": "number",
+                "minimum": 30,
+                "maximum": 140
+              },
+              "min": {
+                "type": "number",
+                "minimum": 20,
+                "maximum": 120
+              },
+              "max": {
+                "type": "number",
+                "minimum": 120,
+                "maximum": 400
+              },
+              "objectiveFollow": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 110,
+                "pattern": "^[^<>]*$"
+              }
+            },
+            "required": [
+              "type",
+              "objective",
+              "vehicle",
+              "route",
+              "speed",
+              "min",
+              "max"
+            ]
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "type": {
+                "const": "observe"
+              },
+              "objective": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 110,
+                "pattern": "^[^<>]*$"
+              },
+              "timeLimit": {
+                "type": "number",
+                "minimum": 10,
+                "maximum": 900
+              },
+              "failIf": {
+                "type": "array",
+                "items": {
+                  "enum": [
+                    "detected",
+                    "wanted"
+                  ]
+                }
+              },
+              "onStart": {
+                "$ref": "#/$defs/actions"
+              },
+              "onComplete": {
+                "$ref": "#/$defs/actions"
+              },
+              "checkpoint": {
+                "type": "boolean"
+              },
+              "events": {
+                "type": "array",
+                "maxItems": 8,
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "at": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 900
+                    },
+                    "do": {
+                      "$ref": "#/$defs/actions"
+                    }
+                  },
+                  "required": [
+                    "at",
+                    "do"
+                  ]
+                }
+              },
+              "target": {
+                "$ref": "#/$defs/loc"
+              },
+              "radius": {
+                "type": "number",
+                "minimum": 1,
+                "maximum": 30
+              },
+              "seconds": {
+                "type": "number",
+                "minimum": 1,
+                "maximum": 60
+              }
+            },
+            "required": [
+              "type",
+              "objective",
+              "target",
+              "seconds"
+            ]
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "type": {
+                "const": "leave"
+              },
+              "objective": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 110,
+                "pattern": "^[^<>]*$"
+              },
+              "timeLimit": {
+                "type": "number",
+                "minimum": 10,
+                "maximum": 900
+              },
+              "failIf": {
+                "type": "array",
+                "items": {
+                  "enum": [
+                    "detected",
+                    "wanted"
+                  ]
+                }
+              },
+              "onStart": {
+                "$ref": "#/$defs/actions"
+              },
+              "onComplete": {
+                "$ref": "#/$defs/actions"
+              },
+              "checkpoint": {
+                "type": "boolean"
+              },
+              "events": {
+                "type": "array",
+                "maxItems": 8,
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "at": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 900
+                    },
+                    "do": {
+                      "$ref": "#/$defs/actions"
+                    }
+                  },
+                  "required": [
+                    "at",
+                    "do"
+                  ]
+                }
+              },
+              "target": {
+                "$ref": "#/$defs/loc"
+              },
+              "radius": {
+                "type": "number",
+                "minimum": 3,
+                "maximum": 60
+              }
+            },
+            "required": [
+              "type",
+              "objective",
+              "target",
+              "radius"
+            ]
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "type": {
+                "const": "lose_wanted"
+              },
+              "objective": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 110,
+                "pattern": "^[^<>]*$"
+              },
+              "timeLimit": {
+                "type": "number",
+                "minimum": 10,
+                "maximum": 900
+              },
+              "failIf": {
+                "type": "array",
+                "items": {
+                  "enum": [
+                    "detected",
+                    "wanted"
+                  ]
+                }
+              },
+              "onStart": {
+                "$ref": "#/$defs/actions"
+              },
+              "onComplete": {
+                "$ref": "#/$defs/actions"
+              },
+              "checkpoint": {
+                "type": "boolean"
+              },
+              "events": {
+                "type": "array",
+                "maxItems": 8,
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "at": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 900
+                    },
+                    "do": {
+                      "$ref": "#/$defs/actions"
+                    }
+                  },
+                  "required": [
+                    "at",
+                    "do"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "type",
+              "objective"
+            ]
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "type": {
+                "const": "collect"
+              },
+              "objective": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 110,
+                "pattern": "^[^<>]*$"
+              },
+              "timeLimit": {
+                "type": "number",
+                "minimum": 10,
+                "maximum": 900
+              },
+              "failIf": {
+                "type": "array",
+                "items": {
+                  "enum": [
+                    "detected",
+                    "wanted"
+                  ]
+                }
+              },
+              "onStart": {
+                "$ref": "#/$defs/actions"
+              },
+              "onComplete": {
+                "$ref": "#/$defs/actions"
+              },
+              "checkpoint": {
+                "type": "boolean"
+              },
+              "events": {
+                "type": "array",
+                "maxItems": 8,
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "at": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 900
+                    },
+                    "do": {
+                      "$ref": "#/$defs/actions"
+                    }
+                  },
+                  "required": [
+                    "at",
+                    "do"
+                  ]
+                }
+              },
+              "targets": {
+                "type": "array",
+                "minItems": 1,
+                "maxItems": 10,
+                "items": {
+                  "$ref": "#/$defs/loc"
+                }
+              },
+              "item": {
+                "$ref": "#/$defs/item"
+              },
+              "radius": {
+                "type": "number",
+                "minimum": 1,
+                "maximum": 30
+              }
+            },
+            "required": [
+              "type",
+              "objective",
+              "targets",
+              "item"
+            ]
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "type": {
+                "const": "checkpoints"
+              },
+              "objective": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 110,
+                "pattern": "^[^<>]*$"
+              },
+              "timeLimit": {
+                "type": "number",
+                "minimum": 10,
+                "maximum": 900
+              },
+              "failIf": {
+                "type": "array",
+                "items": {
+                  "enum": [
+                    "detected",
+                    "wanted"
+                  ]
+                }
+              },
+              "onStart": {
+                "$ref": "#/$defs/actions"
+              },
+              "onComplete": {
+                "$ref": "#/$defs/actions"
+              },
+              "checkpoint": {
+                "type": "boolean"
+              },
+              "events": {
+                "type": "array",
+                "maxItems": 8,
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "at": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 900
+                    },
+                    "do": {
+                      "$ref": "#/$defs/actions"
+                    }
+                  },
+                  "required": [
+                    "at",
+                    "do"
+                  ]
+                }
+              },
+              "targets": {
+                "type": "array",
+                "minItems": 2,
+                "maxItems": 12,
+                "items": {
+                  "$ref": "#/$defs/loc"
+                }
+              },
+              "radius": {
+                "type": "number",
+                "minimum": 1,
+                "maximum": 30
+              },
+              "mode": {
+                "enum": [
+                  "any",
+                  "foot",
+                  "vehicle"
+                ]
+              }
+            },
+            "required": [
+              "type",
+              "objective",
+              "targets"
+            ]
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "type": {
+                "const": "passengers"
+              },
+              "objective": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 110,
+                "pattern": "^[^<>]*$"
+              },
+              "timeLimit": {
+                "type": "number",
+                "minimum": 10,
+                "maximum": 900
+              },
+              "failIf": {
+                "type": "array",
+                "items": {
+                  "enum": [
+                    "detected",
+                    "wanted"
+                  ]
+                }
+              },
+              "onStart": {
+                "$ref": "#/$defs/actions"
+              },
+              "onComplete": {
+                "$ref": "#/$defs/actions"
+              },
+              "checkpoint": {
+                "type": "boolean"
+              },
+              "events": {
+                "type": "array",
+                "maxItems": 8,
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "at": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 900
+                    },
+                    "do": {
+                      "$ref": "#/$defs/actions"
+                    }
+                  },
+                  "required": [
+                    "at",
+                    "do"
+                  ]
+                }
+              },
+              "fares": {
+                "type": "array",
+                "minItems": 1,
+                "maxItems": 6,
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 30,
+                      "pattern": "^[^<>]*$"
+                    },
+                    "from": {
+                      "$ref": "#/$defs/loc"
+                    },
+                    "to": {
+                      "$ref": "#/$defs/loc"
+                    },
+                    "line": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 140,
+                      "pattern": "^[^<>]*$"
+                    },
+                    "profile": {
+                      "enum": [
+                        "passerby",
+                        "employee",
+                        "shopkeeper",
+                        "courier",
+                        "tourist",
+                        "worker",
+                        "robot",
+                        "cop",
+                        "guard"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "name",
+                    "from",
+                    "to"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "type",
+              "objective",
+              "fares"
+            ]
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "type": {
+                "const": "wait"
+              },
+              "objective": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 110,
+                "pattern": "^[^<>]*$"
+              },
+              "timeLimit": {
+                "type": "number",
+                "minimum": 10,
+                "maximum": 900
+              },
+              "failIf": {
+                "type": "array",
+                "items": {
+                  "enum": [
+                    "detected",
+                    "wanted"
+                  ]
+                }
+              },
+              "onStart": {
+                "$ref": "#/$defs/actions"
+              },
+              "onComplete": {
+                "$ref": "#/$defs/actions"
+              },
+              "checkpoint": {
+                "type": "boolean"
+              },
+              "events": {
+                "type": "array",
+                "maxItems": 8,
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "at": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 900
+                    },
+                    "do": {
+                      "$ref": "#/$defs/actions"
+                    }
+                  },
+                  "required": [
+                    "at",
+                    "do"
+                  ]
+                }
+              },
+              "seconds": {
+                "type": "number",
+                "minimum": 1,
+                "maximum": 120
+              }
+            },
+            "required": [
+              "type",
+              "objective",
+              "seconds"
+            ]
+          }
+        ]
+      }
+    },
+    "outro": {
+      "type": "array",
+      "maxItems": 10,
+      "items": {
+        "$ref": "#/$defs/line"
+      }
+    },
+    "punchline": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 60,
+          "pattern": "^[^<>]*$"
+        },
+        "text": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 260,
+          "pattern": "^[^<>]*$"
+        }
+      },
+      "required": [
+        "title",
+        "text"
+      ]
+    },
+    "reward": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "money": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 5000
+        },
+        "xp": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000
+        }
+      },
+      "required": [
+        "money",
+        "xp"
+      ]
+    },
+    "requires": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "missions": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z0-9][a-z0-9_-]{1,59}$"
+          }
+        },
+        "level": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 50
+        }
+      },
+      "required": []
+    },
+    "news": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "headline": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 240,
+          "pattern": "^[^<>]*$"
+        },
+        "source": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 60,
+          "pattern": "^[^<>]*$"
+        },
+        "url": {
+          "type": "string",
+          "pattern": "^https://[^\\s\"'<>]{4,300}$"
+        },
+        "date": {
+          "type": "string"
+        },
+        "category": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 30,
+          "pattern": "^[^<>]*$"
+        }
+      },
+      "required": [
+        "headline",
+        "source",
+        "url",
+        "date",
+        "category"
+      ]
+    },
+    "publishedAt": {
+      "type": "string"
+    },
+    "expiresAt": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema",
+    "id",
+    "kind",
+    "title",
+    "summary",
+    "giver",
+    "intro",
+    "steps",
+    "reward"
+  ],
+  "$defs": {
+    "loc": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "poi": {
+              "type": "string"
+            },
+            "dx": {
+              "type": "integer",
+              "minimum": -12,
+              "maximum": 12
+            },
+            "dy": {
+              "type": "integer",
+              "minimum": -12,
+              "maximum": 12
+            }
+          },
+          "required": [
+            "poi"
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "x": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 319
+            },
+            "y": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 239
+            }
+          },
+          "required": [
+            "x",
+            "y"
+          ]
+        }
+      ]
+    },
+    "line": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "who": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 30,
+          "pattern": "^[^<>]*$"
+        },
+        "text": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 220,
+          "pattern": "^[^<>]*$"
+        }
+      },
+      "required": [
+        "who",
+        "text"
+      ]
+    },
+    "npc": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 30,
+          "pattern": "^[^<>]*$"
+        },
+        "profile": {
+          "enum": [
+            "passerby",
+            "employee",
+            "shopkeeper",
+            "courier",
+            "tourist",
+            "worker",
+            "robot",
+            "cop",
+            "guard"
+          ]
+        },
+        "at": {
+          "$ref": "#/$defs/loc"
+        }
+      },
+      "required": [
+        "name",
+        "profile",
+        "at"
+      ]
+    },
+    "item": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9_-]{1,59}$"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 40,
+          "pattern": "^[^<>]*$"
+        }
+      },
+      "required": [
+        "id",
+        "name"
+      ]
+    },
+    "actions": {
+      "type": "array",
+      "maxItems": 8,
+      "items": {
+        "oneOf": [
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "do": {
+                "const": "toast"
+              },
+              "text": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 140,
+                "pattern": "^[^<>]*$"
+              }
+            },
+            "required": [
+              "do",
+              "text"
+            ]
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "do": {
+                "const": "say"
+              },
+              "who": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 30,
+                "pattern": "^[^<>]*$"
+              },
+              "text": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 180,
+                "pattern": "^[^<>]*$"
+              }
+            },
+            "required": [
+              "do",
+              "who",
+              "text"
+            ]
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "do": {
+                "const": "dialog"
+              },
+              "lines": {
+                "type": "array",
+                "maxItems": 6,
+                "items": {
+                  "$ref": "#/$defs/line"
+                }
+              }
+            },
+            "required": [
+              "do",
+              "lines"
+            ]
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "do": {
+                "const": "reveal"
+              },
+              "title": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 60,
+                "pattern": "^[^<>]*$"
+              },
+              "text": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 260,
+                "pattern": "^[^<>]*$"
+              }
+            },
+            "required": [
+              "do",
+              "title",
+              "text"
+            ]
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "do": {
+                "const": "spawn_npc"
+              },
+              "tag": {
+                "type": "string",
+                "pattern": "^[a-z0-9][a-z0-9_-]{1,59}$"
+              },
+              "npc": {
+                "$ref": "#/$defs/npc"
+              }
+            },
+            "required": [
+              "do",
+              "tag",
+              "npc"
+            ]
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "do": {
+                "const": "spawn_vehicle"
+              },
+              "tag": {
+                "type": "string",
+                "pattern": "^[a-z0-9][a-z0-9_-]{1,59}$"
+              },
+              "vehicle": {
+                "enum": [
+                  "compact",
+                  "sedan",
+                  "sport",
+                  "taxi",
+                  "van",
+                  "truck",
+                  "police"
+                ]
+              },
+              "at": {
+                "$ref": "#/$defs/loc"
+              },
+              "broken": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "do",
+              "tag",
+              "vehicle",
+              "at"
+            ]
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "do": {
+                "const": "spawn_guards"
+              },
+              "routes": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "do",
+              "routes"
+            ]
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "do": {
+                "const": "despawn"
+              },
+              "tag": {
+                "type": "string",
+                "pattern": "^[a-z0-9][a-z0-9_-]{1,59}$"
+              }
+            },
+            "required": [
+              "do",
+              "tag"
+            ]
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "do": {
+                "const": "wanted"
+              },
+              "level": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 5
+              }
+            },
+            "required": [
+              "do",
+              "level"
+            ]
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "do": {
+                "const": "sfx"
+              },
+              "name": {
+                "enum": [
+                  "coin",
+                  "horn",
+                  "alarm",
+                  "tick",
+                  "cuckoo",
+                  "neon",
+                  "start",
+                  "success",
+                  "fail",
+                  "phone",
+                  "robot"
+                ]
+              }
+            },
+            "required": [
+              "do",
+              "name"
+            ]
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "do": {
+                "const": "world"
+              },
+              "set": {
+                "enum": [
+                  "traffic",
+                  "pedestrians",
+                  "lights_blink",
+                  "robots"
+                ]
+              },
+              "value": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 2
+              },
+              "seconds": {
+                "type": "number",
+                "minimum": 1,
+                "maximum": 900
+              }
+            },
+            "required": [
+              "do",
+              "set",
+              "value",
+              "seconds"
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

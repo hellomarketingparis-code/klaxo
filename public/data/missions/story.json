@@ -1,0 +1,144 @@
+{
+  "schema": 1,
+  "missions": [
+    {
+      "schema": 1,
+      "id": "story-01-colis",
+      "kind": "story",
+      "title": "Le colis mystérieux",
+      "summary": "Gégé, épicier très nerveux, veut faire livrer un colis à l'autre bout de la ville. Vite. Et sans le secouer.",
+      "giver": { "name": "Gégé", "profile": "shopkeeper", "at": { "poi": "m1_shop" } },
+      "intro": [
+        { "who": "giver", "text": "Psst ! Toi ! Tu as une tête à livrer des colis sans poser de questions." },
+        { "who": "player", "text": "C'est quoi, dans le colis ?" },
+        { "who": "giver", "text": "Voilà. Ça, c'est une question. On avait dit : sans questions." },
+        { "who": "giver", "text": "Il doit arriver à l'Hôtel Palace avant la fin du chrono. Et surtout : NE LE SECOUE PAS." }
+      ],
+      "steps": [
+        {
+          "type": "pickup",
+          "objective": "Prends le colis posé devant l'épicerie",
+          "target": { "poi": "m1_shop", "dx": -2 },
+          "item": { "id": "colis", "name": "Colis mystérieux" },
+          "onComplete": [{ "do": "say", "who": "Gégé", "text": "Il fait tic-tac, c'est normal. Enfin… c'est prévu." }]
+        },
+        { "type": "get_vehicle", "objective": "Trouve un véhicule", "checkpoint": true },
+        {
+          "type": "deliver",
+          "objective": "Livre le colis à l'Hôtel Palace, sans le secouer",
+          "target": { "poi": "hotel" },
+          "radius": 5,
+          "timeLimit": 80,
+          "fragile": { "max": 5 },
+          "item": { "id": "colis", "name": "Le colis" },
+          "events": [
+            { "at": 12, "do": [{ "do": "say", "who": "Gégé", "text": "Tu roules doucement, hein ? Dis-moi que tu roules doucement." }] },
+            { "at": 38, "do": [{ "do": "sfx", "name": "tick" }, { "do": "toast", "text": "Tic… tac… tic… tac… Le colis accélère." }] },
+            { "at": 55, "do": [{ "do": "say", "who": "Gégé", "text": "Ne regarde pas l'heure. Regarde la route. Mais dépêche-toi." }] }
+          ]
+        },
+        {
+          "type": "talk",
+          "objective": "Remets le colis à sa destinataire, devant l'hôtel",
+          "npc": { "name": "Madame Gégé mère", "profile": "tourist", "at": { "poi": "hotel", "dx": 2 } },
+          "lines": [
+            { "who": "npc", "text": "Ah ! Le cadeau de mon fils. Il s'inquiète toujours pour rien." },
+            { "who": "player", "text": "Il fait tic-tac, madame." },
+            { "who": "npc", "text": "Évidemment. Ouvrez donc, vous allez comprendre." }
+          ],
+          "onComplete": [{ "do": "sfx", "name": "cuckoo" }]
+        }
+      ],
+      "punchline": { "title": "Coucou !", "text": "Dans le colis : un coucou suisse géant. Il sonne toutes les heures pour rappeler à Madame Gégé d'appeler son fils. Elle l'a déjà mis en mode silencieux." },
+      "outro": [{ "who": "Madame Gégé mère", "text": "Dites-lui que je l'appellerai dimanche. Comme tous les dimanches." }],
+      "reward": { "money": 500, "xp": 120 }
+    },
+    {
+      "schema": 1,
+      "id": "story-02-bouchons",
+      "kind": "story",
+      "title": "Le roi des embouteillages",
+      "summary": "Lola, de Radio Bouchon, veut savoir pourquoi une berline violette roule n'importe comment tous les soirs.",
+      "giver": { "name": "Lola Bouchon", "profile": "employee", "at": { "poi": "m2_giver" } },
+      "requires": { "missions": ["story-01-colis"] },
+      "intro": [
+        { "who": "giver", "text": "Lola Bouchon, Radio Bouchon, l'info trafic qui vous ralentit. J'ai un scoop, mais pas le permis." },
+        { "who": "giver", "text": "Une berline violette crée des bouchons tous les soirs. Elle freine au vert, elle hésite, elle repart. C'est trop mauvais pour être un accident." },
+        { "who": "player", "text": "Vous voulez que je la suive." },
+        { "who": "giver", "text": "Discrètement ! Ni trop près, ni trop loin. Et pas de klaxon : ici, c'est moi qui fais du bruit." }
+      ],
+      "steps": [
+        { "type": "get_vehicle", "objective": "Trouve un véhicule discret" },
+        {
+          "type": "tail",
+          "objective": "Repère la berline violette près de la gare",
+          "objectiveFollow": "Suis la berline sans te faire remarquer",
+          "vehicle": "sedan",
+          "color": "#8a5cff",
+          "route": [{ "poi": "gare" }, { "poi": "x_centre" }, { "poi": "x_est" }, { "poi": "wazou" }],
+          "speed": 64,
+          "min": 48,
+          "max": 200,
+          "checkpoint": true,
+          "events": [
+            { "at": 30, "do": [{ "do": "say", "who": "Lola Bouchon", "text": "Je passe à l'antenne dans dix minutes. Dis-moi qu'il fait quelque chose de louche." }] },
+            { "at": 70, "do": [{ "do": "say", "who": "Lola Bouchon", "text": "Il s'est arrêté au vert ? Encore ? Cet homme est un artiste." }] }
+          ]
+        },
+        {
+          "type": "talk",
+          "objective": "Interroge le conducteur devant le siège de Wazou",
+          "npc": { "name": "Octave", "profile": "employee", "at": { "poi": "wazou", "dx": 2 } },
+          "lines": [
+            { "who": "npc", "text": "Vous me suivez depuis la gare. Vous conduisez bien, d'ailleurs. Trop bien." },
+            { "who": "player", "text": "Et vous, pourquoi vous conduisez aussi mal ?" },
+            { "who": "npc", "text": "Mal ? Monsieur, je conduis mal avec une rigueur absolue. C'est mon métier." }
+          ]
+        }
+      ],
+      "punchline": { "title": "Embouteilleur professionnel", "text": "Octave est salarié de Wazou, l'appli de navigation. Sa mission : fabriquer des bouchons pour vendre l'abonnement Premium « Itinéraire sans bouchon ». Il a même un objectif trimestriel." },
+      "outro": [{ "who": "giver", "text": "« Les bouchons sont un produit. » Je tiens mon titre. Et toi, tu tiens ta prime." }],
+      "reward": { "money": 750, "xp": 160 }
+    },
+    {
+      "schema": 1,
+      "id": "story-03-neon",
+      "kind": "story",
+      "title": "Opération néon",
+      "summary": "L'enseigne du Flamant Rose dort dans un entrepôt surveillé. Mamie Néon veut la récupérer. Sans bruit.",
+      "giver": { "name": "Mamie Néon", "profile": "shopkeeper", "at": { "poi": "m3_bar" } },
+      "requires": { "missions": ["story-02-bouchons"] },
+      "intro": [
+        { "who": "giver", "text": "Quarante ans que mon enseigne éclaire cette rue. On me l'a confisquée : « trop rose », qu'ils ont dit." },
+        { "who": "giver", "text": "Elle est à l'entrepôt Stock 13, en zone industrielle. Trois vigiles, des rondes, un grillage." },
+        { "who": "player", "text": "Vous voulez que je la vole." },
+        { "who": "giver", "text": "Que tu la RÉCUPÈRES. Nuance. Et sans te faire voir : j'ai une réputation." }
+      ],
+      "setup": [{ "do": "spawn_guards", "routes": "m3" }],
+      "steps": [
+        { "type": "goto", "objective": "Rejoins l'entrepôt Stock 13, en zone industrielle", "target": { "poi": "m3_observe", "dy": 2 }, "radius": 4 },
+        {
+          "type": "observe",
+          "objective": "Observe les rondes des vigiles depuis le portail",
+          "target": { "poi": "m3_observe", "dy": 2 },
+          "radius": 4,
+          "seconds": 7,
+          "checkpoint": true,
+          "onStart": [{ "do": "toast", "text": "Les cônes de lumière montrent ce que voient les vigiles. Reste en dehors." }]
+        },
+        {
+          "type": "pickup",
+          "objective": "Récupère l'enseigne sans entrer dans leur champ de vision",
+          "target": { "poi": "m3_item" },
+          "item": { "id": "neon", "name": "Enseigne du Flamant Rose" },
+          "failIf": ["detected"]
+        },
+        { "type": "leave", "objective": "Quitte l'entrepôt discrètement", "target": { "poi": "m3_item" }, "radius": 15, "failIf": ["detected"] },
+        { "type": "deliver", "objective": "Rapporte l'enseigne à Mamie Néon", "target": { "poi": "m3_bar" }, "item": { "id": "neon", "name": "L'enseigne" }, "checkpoint": true }
+      ],
+      "punchline": { "title": "FLAMANT ROS", "text": "Mamie Néon rebranche l'enseigne : toute la rue vire au rose. Le « E » a grillé pendant le transport. Le bar s'appelle désormais « Le Flamant Ros ». Les habitués trouvent que ça fait plus chic." },
+      "outro": [{ "who": "giver", "text": "Quarante ans que j'attendais ça. Ils peuvent revenir : cette fois, je l'ai vissée." }],
+      "reward": { "money": 1200, "xp": 220 }
+    }
+  ]
+}
