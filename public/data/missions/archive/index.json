@@ -2,11 +2,11 @@
   "schema": 1,
   "items": [
     {
-      "id": "weekly-2026-w42-ai",
-      "title": "Ralentissez, Robotix !",
+      "id": "weekly-2026-w42-transport",
+      "title": "Tout le monde en taxi",
       "week": "2026-W42",
       "file": "2026-W42.json",
-      "headline": "Fired OpenAI employees question the company's commitment to safety"
+      "headline": "Grève nationale du 17 octobre : à quoi faut-il s'attendre dans les transports ?"
     },
     {
       "id": "weekly-2026-w41-ai",

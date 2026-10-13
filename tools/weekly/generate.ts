@@ -97,8 +97,11 @@ export function classify(title: string): Category | null {
 }
 export function pickTopic(items: FeedItem[], recent: string[], seed: number): { item: FeedItem; category: Category; corroborated: number } | null {
   const rng = new RNG(seed);
-  const cands = items.map((it) => ({ it, cat: classify(it.title), tok: tokens(it.title) })).filter((c) => c.cat !== null) as { it: FeedItem; cat: Category; tok: Set<string> }[];
+  let cands = items.map((it) => ({ it, cat: classify(it.title), tok: tokens(it.title) })).filter((c) => c.cat !== null) as { it: FeedItem; cat: Category; tok: Set<string> }[];
   if (!cands.length) return null;
+  // Jamais deux semaines de suite la même catégorie (donc la même mission), sauf si l'actualité n'offre rien d'autre.
+  const fresh = cands.filter((c) => c.cat !== recent[0]);
+  if (fresh.length) cands = fresh;
   let best: { item: FeedItem; category: Category; corroborated: number; score: number } | null = null;
   for (const c of cands) {
     // Recoupement : d'autres sources parlent-elles du même fait cette semaine ?
@@ -154,7 +157,8 @@ export async function main(): Promise<number> {
   const map = generateCity();
   const archivePath = path.join(DATA, 'missions', 'archive', 'index.json');
   const archive: ArchiveIndex = readJson(archivePath, { schema: 1, items: [] });
-  const recent = archive.items.slice(0, 3).map((it) => it.id.split('-').pop()!);
+  // Catégories des semaines précédentes, la plus récente d'abord (la semaine en cours est ignorée si on relance le robot).
+  const recent = archive.items.filter((it) => it.week !== week.id).slice(0, 3).map((it) => it.id.split('-').pop()!);
   const seed = hashStr(week.id);
 
   let news: NewsRef | null = null, category: Category = 'generic';

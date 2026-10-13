@@ -1,13 +1,13 @@
 {
   "schema": 1,
-  "generatedAt": "2026-10-13T21:01:53.442Z",
+  "generatedAt": "2026-10-13T12:00:00.000Z",
   "missions": [
     {
       "schema": 1,
-      "id": "weekly-2026-w42-ai",
+      "id": "weekly-2026-w42-transport",
       "kind": "weekly",
-      "title": "Ralentissez, Robotix !",
-      "summary": "L’usine Robotix a lâché ses robots stagiaires en ville. Ils sont polis, zélés, et beaucoup trop rapides.",
+      "title": "Tout le monde en taxi",
+      "summary": "Les transports sont à l’arrêt. La ville entière cherche un chauffeur. Tu as une voiture, donc une vocation.",
       "giver": {
         "name": "Jo la Dépêche",
         "profile": "shopkeeper",
@@ -19,136 +19,80 @@
       "intro": [
         {
           "who": "giver",
-          "text": "Tu as lu ça ? La plupart des gens trouvent que les machines vont trop vite. Et pile cette semaine, Robotix lâche ses robots stagiaires en ville."
+          "text": "Plus un bus, plus un tram. La moitié de la ville est coincée sur le trottoir."
         },
         {
           "who": "player",
-          "text": "Ils font quoi, ces robots ?"
+          "text": "Et l’autre moitié ?"
         },
         {
           "who": "giver",
-          "text": "Tout. Trop vite. L’un d’eux a rangé mon kiosque par ordre alphabétique. J’ai mis trois heures à retrouver « Aujourd’hui »."
-        },
-        {
-          "who": "giver",
-          "text": "Débranche-les et rapporte les fusibles à l’usine. Gentiment : ils sont en période d’essai."
+          "text": "Elle klaxonne. Prends une voiture et dépose trois naufragés. Ils paient en gratitude. Moi, en vrai argent."
         }
       ],
       "steps": [
         {
-          "type": "collect",
-          "objective": "Débranche les robots stagiaires trop zélés",
-          "targets": [
-            {
-              "poi": "police",
-              "dy": 1
-            },
-            {
-              "poi": "clothes",
-              "dy": 1
-            },
-            {
-              "poi": "m2_giver",
-              "dy": 1
-            },
-            {
-              "poi": "gare",
-              "dy": 1
-            },
-            {
-              "poi": "tour",
-              "dy": 1
-            }
-          ],
-          "item": {
-            "id": "fusible",
-            "name": "Fusible de robot"
-          },
-          "radius": 2,
-          "timeLimit": 200,
-          "checkpoint": true,
+          "type": "get_vehicle",
+          "objective": "Trouve un véhicule",
+          "checkpoint": true
+        },
+        {
+          "type": "passengers",
+          "objective": "Dépose les trois voyageurs bloqués",
+          "timeLimit": 270,
           "onStart": [
             {
               "do": "world",
-              "set": "robots",
-              "value": 0.5,
+              "set": "traffic",
+              "value": 1.5,
               "seconds": 600
-            },
-            {
-              "do": "sfx",
-              "name": "robot"
             }
           ],
-          "events": [
+          "fares": [
             {
-              "at": 20,
-              "do": [
-                {
-                  "do": "say",
-                  "who": "Robot stagiaire",
-                  "text": "Bonjour. J’ai optimisé votre trajet. Il passe par ici. Désolé."
-                }
-              ]
+              "name": "Madame Correspondance",
+              "from": {
+                "poi": "gare"
+              },
+              "to": {
+                "poi": "hotel"
+              },
+              "profile": "tourist",
+              "line": "Mon train a deux jours de retard. J’ai fini mon livre. Deux fois."
             },
             {
-              "at": 90,
-              "do": [
-                {
-                  "do": "say",
-                  "who": "Jo la Dépêche",
-                  "text": "Dépêche-toi : il y en a un qui vient de finir mes mots croisés. Au stylo."
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "type": "deliver",
-          "objective": "Rapporte les fusibles à l’usine Robotix",
-          "target": {
-            "poi": "usine"
-          },
-          "radius": 5,
-          "item": {
-            "id": "fusible",
-            "name": "Les fusibles"
-          }
-        },
-        {
-          "type": "talk",
-          "objective": "Parle à l’ingénieure de Robotix",
-          "npc": {
-            "name": "Ingénieure Vitesse",
-            "profile": "worker",
-            "at": {
-              "poi": "usine",
-              "dx": 2
-            }
-          },
-          "lines": [
-            {
-              "who": "npc",
-              "text": "Nos robots vont trop vite ? Impossible. Nous avons fait un sondage."
+              "name": "Monsieur Pointeuse",
+              "from": {
+                "poi": "parc"
+              },
+              "to": {
+                "poi": "tour"
+              },
+              "profile": "employee",
+              "line": "Vite ! Ma réunion a commencé. Elle porte sur les retards."
             },
             {
-              "who": "player",
-              "text": "Et alors ?"
-            },
-            {
-              "who": "npc",
-              "text": "Regardez vous-même les résultats."
+              "name": "Le contrôleur",
+              "from": {
+                "poi": "mairie"
+              },
+              "to": {
+                "poi": "gare"
+              },
+              "profile": "employee",
+              "line": "Vous avez votre titre de transport ? Pardon. Déformation professionnelle."
             }
           ]
         }
       ],
       "punchline": {
-        "title": "Sondage interne",
-        "text": "Chez Robotix, 64 % des personnes interrogées trouvent que tout va trop vite. Les 36 % restants étaient des robots. Ils ont répondu avant la fin de la question."
+        "title": "Service minimum",
+        "text": "Le trafic reprendra « progressivement ». Le dictionnaire de la ville précise : progressivement, adverbe, synonyme de « un jour »."
       },
       "outro": [
         {
           "who": "giver",
-          "text": "Ils vont sortir un mode « Lent ». En option payante, évidemment."
+          "text": "Tu as transporté plus de monde que la ligne 3 ce mois-ci. Bravo."
         }
       ],
       "reward": {
@@ -156,11 +100,11 @@
         "xp": 180
       },
       "news": {
-        "headline": "Fired OpenAI employees question the company's commitment to safety",
-        "source": "NPR",
-        "url": "https://www.npr.org/2026/10/09/nx-s1-5996890/openai-safety-firings",
-        "date": "2026-10-09T21:28:09.000Z",
-        "category": "ai"
+        "headline": "Grève nationale du 17 octobre : à quoi faut-il s'attendre dans les transports ?",
+        "source": "DéplacementsPros",
+        "url": "https://www.deplacementspros.com/transport/greve-nationale-du-17-octobre-a-quoi-faut-il-s-attendre",
+        "date": "2026-10-09T00:00:00.000Z",
+        "category": "transport"
       },
       "publishedAt": "2026-10-12T00:00:00.000Z",
       "expiresAt": "2026-10-20T00:00:00.000Z"

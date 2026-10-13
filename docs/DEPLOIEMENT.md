@@ -6,11 +6,11 @@ Le jeu utilise des chemins relatifs. Il fonctionne donc à la racine d'un domain
 
 ## Option 1 : GitHub Pages, avec mission hebdomadaire automatique
 
-C'est la voie prévue par le projet. Les deux automatisations sont déjà écrites dans `.github/workflows/`. Elles n'ont pas encore été exécutées : surveillez la première exécution dans l'onglet Actions.
+C'est la voie retenue : le jeu est publié à l'adresse https://hellomarketingparis-code.github.io/klaxo/ depuis le dépôt `hellomarketingparis-code/klaxo`. Les deux automatisations de `.github/workflows/` ont tourné avec succès le 13 octobre 2026. Les étapes ci-dessous servent à refaire l'installation sur un autre dépôt.
 
 1. Créez un dépôt GitHub et poussez-y le projet sur la branche `main`.
 2. Dans le dépôt : Settings → Pages → Source : **GitHub Actions**.
-3. Dans Settings → Actions → General → Workflow permissions, choisissez **Read and write permissions**. Le robot hebdomadaire en a besoin pour enregistrer la mission.
+3. Rien à changer dans Settings → Actions → General → Workflow permissions : le robot hebdomadaire demande lui-même le droit d'écriture dont il a besoin (`permissions: contents: write` dans `weekly.yml`). Laissez le réglage par défaut en lecture seule.
 4. Poussez un commit, ou lancez « Publier le jeu » à la main dans l'onglet Actions. L'adresse du jeu s'affiche à la fin du déploiement.
 
 Ensuite, tout est automatique :

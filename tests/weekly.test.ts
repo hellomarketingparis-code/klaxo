@@ -46,6 +46,17 @@ describe('lecture des flux d’actualité', () => {
     expect(pickTopic(items.filter((i) => !/panne/.test(i.title)), [], 1)!.category).not.toBe('outage');
     expect(pickTopic([], [], 1)).toBeNull();
   });
+  it('ne reprend jamais la catégorie de la semaine précédente s’il existe un autre sujet', () => {
+    const items = [...parseFeed(fixture('journal-alpha.xml'), 'Alpha'), ...parseFeed(fixture('gazette-beta.xml'), 'Beta'), ...parseFeed(fixture('courrier-gamma.xml'), 'Gamma')];
+    for (let seed = 1; seed <= 20; seed++) expect(pickTopic(items, ['outage'], seed)!.category).not.toBe('outage');
+    // Seule catégorie disponible : on la garde plutôt que de ne rien publier.
+    const only = items.filter((i) => classify(i.title) === 'outage');
+    expect(pickTopic(only, ['outage'], 1)!.category).toBe('outage');
+  });
+  it('les textes des modèles n’affirment aucun fait précis à la place de l’article cité', () => {
+    const out = buildWeekly('ai', news, '2026-W42', new Date('2026-10-12T00:00:00Z'), new Date('2026-10-20T00:00:00Z'), new RNG(1), city());
+    expect(out.mission.intro.map((l) => l.text).join(' ')).not.toMatch(/la plupart des gens|sondage/i);
+  });
   it('calcule la semaine ISO', () => {
     const w = isoWeek(new Date('2026-10-11T12:00:00Z'));
     expect(w.id).toBe('2026-W41');

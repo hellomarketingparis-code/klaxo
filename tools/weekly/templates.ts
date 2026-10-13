@@ -65,7 +65,7 @@ export function buildWeekly(category: Category, news: NewsRef, weekId: string, s
       const spots = route(rng.shuffle(['mairie', 'gare', 'banque', 'clothes', 'm2_giver', 'tour', 'parc', 'police']).slice(0, 5));
       return {
         mission: base('Ralentissez, Robotix !', 'L’usine Robotix a lâché ses robots stagiaires en ville. Ils sont polis, zélés, et beaucoup trop rapides.', JO,
-          ['Tu as lu ça ? La plupart des gens trouvent que les machines vont trop vite. Et pile cette semaine, Robotix lâche ses robots stagiaires en ville.', '> Ils font quoi, ces robots ?', 'Tout. Trop vite. L’un d’eux a rangé mon kiosque par ordre alphabétique. J’ai mis trois heures à retrouver « Aujourd’hui ».', 'Débranche-les et rapporte les fusibles à l’usine. Gentiment : ils sont en période d’essai.'],
+          ['Tu as vu l’actu sur l’intelligence artificielle cette semaine ? Pile au même moment, Robotix lâche ses robots stagiaires en ville.', '> Ils font quoi, ces robots ?', 'Tout. Trop vite. L’un d’eux a rangé mon kiosque par ordre alphabétique. J’ai mis trois heures à retrouver « Aujourd’hui ».', 'Débranche-les et rapporte les fusibles à l’usine. Gentiment : ils sont en période d’essai.'],
           [
             { type: 'collect', objective: 'Débranche les robots stagiaires trop zélés', targets: spots.map((poi) => ({ poi, dy: 1 })), item: { id: 'fusible', name: 'Fusible de robot' }, radius: 2, timeLimit: limit(spots, 200), checkpoint: true,
               onStart: [{ do: 'world', set: 'robots', value: 0.5, seconds: 600 }, { do: 'sfx', name: 'robot' }],

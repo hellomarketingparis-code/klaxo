@@ -1,5 +1,7 @@
 # KLAXO
 
+**Jouer : https://hellomarketingparis-code.github.io/klaxo/**
+
 Jeu d'action et d'exploration en ville, en pixel art vu du dessus, pour navigateur. Solo, gratuit, jouable hors ligne après le premier chargement. Chaque semaine, une nouvelle mission satirique inspirée d'un fait d'actualité réel apparaît au kiosque de la ville.
 
 Tout est généré par le code : la ville, les bâtiments, les voitures, les personnages, les sons et la musique. Le dépôt ne contient aucune image ni aucun fichier audio, à part les icônes de l'application, elles-mêmes dessinées par un script.
@@ -26,7 +28,7 @@ npm run preview    # sert dist/ sur http://localhost:4173
 
 | Commande | Effet |
 | --- | --- |
-| `npm test` | 63 tests automatisés de la simulation (ville, circulation, police, missions, sauvegarde, données) |
+| `npm test` | 65 tests automatisés de la simulation (ville, circulation, police, missions, sauvegarde, données) |
 | `npm run test:e2e` | 28 vérifications dans un vrai navigateur (Chromium), clavier et tactile. Lancer `npm run build` avant. |
 | `npm run validate:data` | Valide tous les fichiers de `public/data` |
 | `npm run weekly` | Génère la mission de la semaine à partir des flux d'actualité |
@@ -66,13 +68,14 @@ Testé automatiquement dans cet environnement :
 - La simulation complète sans affichage : 63 tests, dont un pilote automatique qui conduit réellement de l'épicerie à l'hôtel pour la mission 1, une filature menée de bout en bout, et l'infiltration.
 - Le jeu compilé dans Chromium (Playwright) : les 15 critères de validation de la première version, la sauvegarde après rechargement, le fonctionnement hors ligne, les données invalides, et un téléphone émulé (écran 844 × 390, tactile multipoint).
 
+Vérifié en ligne le 13 octobre 2026 : le jeu publié sur GitHub Pages démarre avec sa mission de la semaine et son mode hors ligne ; le robot hebdomadaire a lu les 11 flux d'actualité (240 titres), produit une mission valide, l'a enregistrée dans le dépôt et a republié le jeu.
+
 Non testé, à vérifier sur de vrais appareils :
 
 - **Safari sur iPhone et Chrome sur un vrai téléphone Android.** Seule une émulation tactile dans Chromium a été exécutée.
 - **Les performances sur un téléphone modeste.** La seule mesure disponible vient d'un rendu logiciel sans carte graphique (environ 49 images par seconde). Elle ne dit rien d'un appareil précis.
 - **Le son.** Le code audio s'exécute sans erreur, mais personne n'a écouté le résultat.
-- **La lecture des flux RSS réels.** Le générateur a été testé sur des flux locaux fictifs ; le réseau de cet environnement bloque les sites d'actualité. Les adresses de `tools/weekly/feeds.json` sont à confirmer au premier lancement (le journal indique chaque flux en échec).
-- **La réécriture des textes par une IA** (facultative, nécessite une clé d'API) et **les workflows GitHub Actions**, écrits mais jamais exécutés.
+- **La réécriture des textes par une IA** (facultative, nécessite une clé d'API).
 - **La manette**, codée mais non testée.
 - **Le plaisir de jeu.** Les réglages (vitesses, chronomètres, sévérité de la police) ont été calibrés par simulation, pas par des joueurs.
 
