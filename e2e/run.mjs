@@ -78,6 +78,9 @@ await test('   création du personnage puis entrée en jeu, sans inscription', a
   await page.click('text=C’est parti');
   await page.waitForSelector('text=Compris');
   await page.click('text=Compris');
+  // Premier lancement : le jeu propose de jouer en ligne. Les tests solo choisissent « Jouer seul ».
+  await page.waitForSelector('text=Jouer avec les autres ?');
+  await page.click('text=Jouer seul');
   await waitState(page, () => window.__klaxo.playing && !window.__klaxo.world.paused);
   const s = await page.evaluate(() => ({ name: window.__klaxo.world.player.name, top: window.__klaxo.world.player.look.top, acc: window.__klaxo.world.player.look.acc }));
   assert(s.name === 'Testeur' && s.top === 0x22e0ff && s.acc === 1, `personnage inattendu : ${JSON.stringify(s)}`);
@@ -392,6 +395,8 @@ await test('   menu puis entrée en jeu au doigt', async () => {
   await mp.tap('text=C’est parti');
   await mp.waitForSelector('text=Compris');
   await mp.tap('text=Compris');
+  await mp.waitForSelector('text=Jouer seul');
+  await mp.tap('text=Jouer seul');
   await waitState(mp, () => window.__klaxo.playing && !window.__klaxo.world.paused);
   assert(await mp.evaluate(() => window.__klaxo.touchMode), 'mode tactile non détecté');
   await mp.waitForSelector('#touch:not([hidden])');
@@ -457,6 +462,93 @@ await test('   l’interface tient dans l’écran, sans défilement horizontal'
   assert(merr.length === 0, `erreurs console : ${merr.join(' | ')}`);
 });
 await phone.close();
+
+// ============ En ligne ============
+// Deux onglets du même navigateur reliés par le transport local (?net=local) : même logique de jeu que le
+// pair-à-pair réel, sans dépendre d'internet (le réseau de cet environnement bloque les relais publics).
+console.log('\nEn ligne (deux onglets, transport local)');
+const netCtx = await browser.newContext({ viewport: { width: 1000, height: 640 } });
+async function openNet() {
+  const pg = await netCtx.newPage();
+  const errs = [];
+  pg.on('pageerror', (e) => errs.push(String(e)));
+  pg.on('console', (m) => { if (m.type() === 'error' && !/Failed to load resource|net::ERR/.test(m.text())) errs.push(m.text()); });
+  await pg.goto(url + '?net=local');
+  await pg.waitForFunction(() => window.__klaxo && window.__klaxo.scene, null, { timeout: 45000 });
+  await pg.evaluate(() => { const g = window.__klaxo; g.settings.quality = 'medium'; g.applySettings(); });
+  return { pg, errs };
+}
+const NA = await openNet(), NB = await openNet();
+const A = NA.pg, B = NB.pg;
+async function startOnline(pg) {
+  await pg.click('text=Jouer');
+  await pg.waitForSelector('text=C’est parti');
+  await pg.click('text=C’est parti');
+  await pg.waitForSelector('text=Compris');
+  await pg.click('text=Compris');
+  await pg.waitForSelector('text=Jouer en ligne');
+  await pg.click('text=Jouer en ligne');
+  await waitState(pg, () => window.__klaxo.playing && !window.__klaxo.world.paused && window.__klaxo.net.status === 'online');
+}
+const netState = (pg) => pg.evaluate(() => { const n = window.__klaxo.net; return { status: n.status, count: n.count, place: n.placeLabel, me: n.selfName, peers: [...n.peers.values()].map((p) => ({ name: p.name, x: Math.round(p.x), y: Math.round(p.y), mode: p.mode, sid: p.sid, horn: p.hornT })) }; });
+
+await test('   deux joueurs se retrouvent dans la même ville', async () => {
+  await startOnline(A);
+  await startOnline(B);
+  await waitState(A, () => window.__klaxo.net.count === 1, 15000);
+  await waitState(B, () => window.__klaxo.net.count === 1, 15000);
+  const a = await netState(A), b = await netState(B);
+  assert(a.place === 'Ville publique 1' && b.place === 'Ville publique 1', `villes différentes : ${a.place} / ${b.place}`);
+  assert(a.peers[0].name === b.me && b.peers[0].name === a.me, 'noms incohérents entre les deux joueurs');
+  await A.waitForSelector('.nametag', { timeout: 8000 });
+  await A.waitForSelector('#netpill:not([hidden])');
+  await sleep(600);
+  await A.screenshot({ path: path.join(shots, '30-en-ligne.png') });
+  return `${a.me} voit ${a.peers[0].name}`;
+});
+
+await test('   les déplacements de l’autre joueur sont suivis', async () => {
+  const target = await B.evaluate(() => { const p = window.__klaxo.world.player; p.x += 48; p.y += 0; return { x: Math.round(p.x), y: Math.round(p.y) }; });
+  await waitState(A, (t) => { const p = [...window.__klaxo.net.peers.values()][0]; return p && Math.abs(p.x - t.x) < 3 && Math.abs(p.y - t.y) < 3; }, 6000, target);
+});
+
+await test('   mission en équipe : invitation, étape réussie par l’un, validée pour l’autre', async () => {
+  await A.evaluate(() => { const w = window.__klaxo.world; w.missions.begin(w.missions.weekly, 0); });
+  await B.waitForSelector('#invite', { timeout: 8000 });
+  await B.screenshot({ path: path.join(shots, '31-invitation.png') });
+  await B.click('#invite >> text=Rejoindre');
+  await waitState(B, () => window.__klaxo.world.missions.active && window.__klaxo.net.session, 6000);
+  await waitState(A, () => window.__klaxo.net.partners().length === 1, 6000);
+  const step0 = await B.evaluate(() => window.__klaxo.world.missions.active.stepIndex);
+  // A termine la première étape (trouver un véhicule) : B passe aussi à l'étape suivante.
+  await A.evaluate(() => { const g = window.__klaxo; const v = g.debug.car('sedan'); g.world.enterVehicle(v); });
+  await waitState(A, () => window.__klaxo.world.player.state === 'driving', 5000);
+  await waitState(B, (s0) => window.__klaxo.world.missions.active && window.__klaxo.world.missions.active.stepIndex > s0, 8000, step0);
+  await sleep(400);
+  await B.screenshot({ path: path.join(shots, '32-equipe.png') });
+  return `étape ${step0 + 1} → ${step0 + 2} chez le coéquipier`;
+});
+
+await test('   le klaxon de l’autre joueur s’entend', async () => {
+  await A.keyboard.press('Space');
+  await waitState(B, () => [...window.__klaxo.net.peers.values()].some((p) => p.hornT > 0), 4000);
+});
+
+await test('   aucune discussion possible entre joueurs', async () => {
+  const fields = await B.evaluate(() => [...document.querySelectorAll('#hud input, #hud textarea, #hud [contenteditable]')].length);
+  assert(fields === 0, 'un champ de saisie est présent en jeu');
+  const tags = await A.evaluate(() => [...document.querySelectorAll('.nametag')].map((e) => e.textContent));
+  assert(tags.every((t) => /^(◆ )?[\p{L} ]+ \d{2}( ★+)?( ♪)?$/u.test(t)), `étiquette inattendue : ${tags.join(' | ')}`);
+});
+
+await test('   repasser hors ligne : l’autre joueur voit le départ', async () => {
+  await B.evaluate(() => { window.__klaxo.world.missions.abort(); window.__klaxo.goOffline(); });
+  await waitState(A, () => window.__klaxo.net.count === 0, 8000);
+  const b = await netState(B);
+  assert(b.status === 'off', `état inattendu : ${b.status}`);
+  assert(NA.errs.length === 0 && NB.errs.length === 0, `erreurs console : ${[...NA.errs, ...NB.errs].join(' | ')}`);
+});
+await netCtx.close();
 
 await browser.close();
 server.close();

@@ -19,8 +19,9 @@ function hostDownloads(): { use: (name: string) => Promise<any> } | null {
   return c && typeof c.use === 'function' ? c : null;
 }
 import { h, clear, css, fmtDate, fmtDuration } from './dom';
+import { makeGroupCode, normalizeGroupCode } from '../net/protocol';
 
-type Tab = 'map' | 'missions' | 'stats' | 'options' | 'save' | 'help';
+type Tab = 'map' | 'missions' | 'online' | 'stats' | 'options' | 'save' | 'help';
 
 /** Menus et fenêtres : accueil, création de personnage, pause, boutiques, kiosque. */
 export class Menus {
@@ -30,7 +31,14 @@ export class Menus {
   /** Appelé à chaque ouverture ou fermeture (l'interface met le monde en pause). */
   onChange: () => void = () => {};
 
-  constructor(private app: App, private hud: Hud, overlay: HTMLElement) { this.overlay = overlay; }
+  private pauseTab: Tab | null = null;
+  private pauseRender: (() => void) | null = null;
+
+  constructor(private app: App, private hud: Hud, overlay: HTMLElement) {
+    this.overlay = overlay;
+    // L'onglet « En ligne » se met à jour quand des joueurs arrivent ou partent.
+    app.world.bus.on('net', () => { if (this.kind === 'pause' && this.pauseTab === 'online') this.pauseRender?.(); });
+  }
 
   get open(): boolean { return this.kind !== null; }
   private mount(kind: string, node: HTMLElement, onClose?: () => void): void {
@@ -108,7 +116,7 @@ export class Menus {
         h('p', { class: 'muted', text: 'Rends-toi au kiosque de Jo, à Downtown, pour la jouer.' })));
     }
     const s = app.saveInfo;
-    const foot = h('div', { class: 'menu-foot', text: `v${GAME_VERSION} · jeu solo · ${app.save.persistent ? 'sauvegarde locale' : 'sauvegarde indisponible sur ce navigateur'}${app.weekly.online ? '' : ' · hors ligne'}` });
+    const foot = h('div', { class: 'menu-foot', text: `v${GAME_VERSION} · ${app.settings.online === 'on' && app.net.status !== 'unavailable' ? 'en ligne' : 'solo'} · ${app.save.persistent ? 'sauvegarde locale' : 'sauvegarde indisponible sur ce navigateur'}${app.weekly.online ? '' : ' · hors ligne'}` });
     const main = h('div', { class: 'menu-main' }, logo,
       h('p', { class: 'tagline', text: 'La ville qui klaxonne l’actualité' }),
       s ? h('p', { class: 'muted', style: { margin: '0' }, text: `${s.player.name || 'Sans nom'} · niveau ${s.level} · ${s.money.toLocaleString('fr-FR')} ¤ · ${fmtDuration(s.playTime ?? 0)} de jeu` }) : h('p', { class: 'muted menu-intro', style: { margin: '0', maxWidth: '34ch' }, text: 'Conduis, explore, rends service. Chaque semaine, une nouvelle mission inspirée de l’actualité.' }),
@@ -177,15 +185,17 @@ export class Menus {
   showPause(tab: Tab = 'missions', back?: () => void): void {
     const app = this.app;
     const inGame = app.playing;
-    const tabs: [Tab, string][] = inGame ? [['missions', 'Missions'], ['map', 'Carte'], ['stats', 'Statistiques'], ['options', 'Options'], ['save', 'Sauvegarde'], ['help', 'Commandes']] : [['options', 'Options'], ['help', 'Commandes'], ['save', 'Sauvegarde']];
+    const tabs: [Tab, string][] = inGame ? [['missions', 'Missions'], ['map', 'Carte'], ['online', 'En ligne'], ['stats', 'Statistiques'], ['options', 'Options'], ['save', 'Sauvegarde'], ['help', 'Commandes']] : [['options', 'Options'], ['online', 'En ligne'], ['help', 'Commandes'], ['save', 'Sauvegarde']];
     const body = h('div', { class: 'body' });
     const bar = h('div', { class: 'tabs', role: 'tablist' });
     const render = (t: Tab) => {
+      this.pauseTab = t; this.pauseRender = () => render(t);
       clear(bar);
       for (const [id, label] of tabs) bar.append(h('button', { role: 'tab', 'aria-selected': String(id === t), text: label, onclick: () => { this.click(); render(id); } }));
       clear(body);
       if (t === 'map') this.tabMap(body);
       else if (t === 'missions') this.tabMissions(body);
+      else if (t === 'online') this.tabOnline(body, () => render('online'));
       else if (t === 'stats') this.tabStats(body);
       else if (t === 'options') this.tabOptions(body);
       else if (t === 'save') this.tabSave(body, () => render('save'));
@@ -198,11 +208,65 @@ export class Menus {
     const onClose = back ?? (() => this.close());
     this.mount('pause', this.window(inGame ? 'Pause' : 'Réglages', body, { tabs: bar, onClose }), undefined);
   }
+  private tabOnline(body: HTMLElement, rerender: () => void): void {
+    const app = this.app, net = app.net, ms = app.world.missions;
+    if (net.status === 'unavailable') {
+      body.append(h('div', { class: 'item' }, h('h3', { text: 'Jeu en ligne indisponible ici' }),
+        h('p', { class: 'muted', style: { margin: '0' }, text: 'Cette version du jeu tourne dans un cadre qui bloque les connexions entre joueurs. Le jeu en ligne fonctionne sur le site du jeu : hellomarketingparis-code.github.io/klaxo' })));
+      return;
+    }
+    const st = net.status;
+    const label = st === 'online' ? `En ligne · ${net.placeLabel}` : st === 'connecting' ? 'Connexion…' : st === 'error' ? 'Hors ligne' : app.settings.online === 'on' && !app.playing ? 'En ligne dès que tu joues' : 'Hors ligne';
+    const head = h('div', { class: 'item' },
+      h('div', { class: 'row' }, h('span', { class: 'tag ' + (st === 'online' ? 'ok' : st === 'error' ? 'ko' : ''), text: label }),
+        st === 'online' ? h('span', { class: 'meta', text: net.count === 0 ? 'Personne d’autre pour l’instant' : `${net.count} autre${net.count > 1 ? 's' : ''} joueur${net.count > 1 ? 's' : ''} ici` }) : null),
+      st === 'online' ? h('p', { style: { margin: '0' } }, 'Les autres te voient sous le nom ', h('b', { text: net.selfName }), '.') : null,
+      st === 'error' ? h('p', { class: 'muted', style: { margin: '0' }, text: net.error }) : null,
+      h('p', { class: 'muted', style: { margin: '0' }, text: 'Les noms sont attribués au hasard. Il n’y a aucune discussion entre joueurs : on se croise, on klaxonne, on fait les missions ensemble.' }));
+    body.append(head);
+    if (st === 'online' && net.count) {
+      const list = h('div', { class: 'list' });
+      for (const p of net.peers.values()) {
+        const partner = !!net.session && p.sid === net.session.sid;
+        list.append(h('div', { class: 'row' }, h('i', { class: 'dot', style: { background: p.color } }), h('span', { text: p.name }),
+          h('span', { class: 'meta', text: p.mode === 1 ? 'en voiture' : 'à pied' }),
+          p.wanted ? h('span', { class: 'tag ko', text: '★'.repeat(p.wanted) }) : null,
+          partner ? h('span', { class: 'tag ok', text: 'Coéquipier' }) : null));
+      }
+      body.append(h('span', { class: 'label', text: 'Dans ta ville' }), list);
+    }
+    if (st === 'online' && ms.active && net.session && net.count) {
+      body.append(h('div', { class: 'row' }, h('button', { class: 'btn small', text: 'Inviter les joueurs à ma mission', onclick: () => { this.click(); net.reinvite(); app.world.bus.emit('toast', { text: 'Invitation envoyée aux joueurs de ta ville.', kind: 'info' }); } })));
+    }
+    // Choisir où jouer.
+    const code = h('input', { type: 'text', id: 'group-code', maxLength: 8, placeholder: 'Code du groupe', autocomplete: 'off', autocapitalize: 'characters', spellcheck: false });
+    const msg = h('span', { class: 'muted' });
+    const go = (target: { kind: 'public' } | { kind: 'group'; code: string }) => { this.click(); app.goOnline(target); rerender(); };
+    body.append(h('span', { class: 'label', text: 'Où jouer' }),
+      h('div', { class: 'row' },
+        h('button', { class: 'btn small' + (net.target?.kind === 'public' ? ' primary' : ''), text: 'Ville publique', onclick: () => go({ kind: 'public' }) }),
+        h('button', { class: 'btn small', text: 'Créer un groupe privé', onclick: () => { const c = makeGroupCode(); go({ kind: 'group', code: c }); app.world.bus.emit('toast', { text: `Groupe ${c} créé : donne ce code à tes amis.`, kind: 'good', ttl: 6 }); } }),
+        app.settings.online === 'on' || net.status !== 'off' ? h('button', { class: 'btn small', text: 'Jouer hors ligne', onclick: () => { this.click(); app.goOffline(); rerender(); } }) : null),
+      h('div', { class: 'row' }, code,
+        h('button', { class: 'btn small', text: 'Rejoindre ce groupe', onclick: () => { const c = normalizeGroupCode(code.value); if (!c) { msg.textContent = 'Le code fait 4 à 8 lettres ou chiffres.'; return; } go({ kind: 'group', code: c }); } }), msg),
+      net.target?.kind === 'group' ? h('p', { style: { margin: '0' } }, 'Code de ton groupe : ', h('b', { class: 'code', text: net.target.code }), '. Partage-le en dehors du jeu.') : '',
+      h('p', { class: 'muted', style: { margin: '0' }, text: 'En ligne, ton appareil se connecte directement à ceux des autres joueurs de ta ville, comme pour un appel vidéo : ils peuvent voir ton adresse internet. Une ville accueille 8 joueurs ; quand elle est pleine, le jeu t’envoie dans la suivante. Certains réseaux (entreprise, école) bloquent ces connexions.' }));
+  }
+  /** Premier lancement : jouer en ligne ou seul. */
+  showOnlineConsent(onDone: (online: boolean) => void): void {
+    const pick = (on: boolean) => { this.click(); this.close(); onDone(on); };
+    const body = h('div', { class: 'body' },
+      h('p', { style: { margin: '0' }, text: 'En ligne, tu croises les autres joueurs dans la ville et tu peux faire les missions avec eux. C’est gratuit.' }),
+      h('p', { class: 'muted', style: { margin: '0' }, text: 'Il n’y a aucune discussion : les noms sont attribués au hasard et rien de ce que tu écris n’est partagé.' }),
+      h('p', { class: 'muted', style: { margin: '0' }, text: 'Ton appareil se connecte directement à ceux des autres joueurs, comme pour un appel vidéo : ils peuvent voir ton adresse internet. Tu peux changer d’avis à tout moment dans Pause → En ligne.' }),
+      h('div', { class: 'row' }, h('button', { class: 'btn primary', text: 'Jouer en ligne', 'data-autofocus': '1', onclick: () => pick(true) }), h('button', { class: 'btn', text: 'Jouer seul', onclick: () => pick(false) })));
+    this.mount('notice', this.window('Jouer avec les autres ?', body, { narrow: true, closable: false }));
+  }
   private tabMap(body: HTMLElement): void {
     const c = h('canvas', { id: 'bigmap', role: 'img', 'aria-label': 'Carte de Klaxo' });
     this.hud.drawBigMap(c);
     const lg = (color: string, text: string) => h('span', null, h('i', { style: { background: color } }), text);
-    body.append(c, h('div', { class: 'legend' }, lg('#ffffff', 'Toi'), lg('#ff2e88', 'Mission'), lg('#22e0ff', 'Kiosque et actualité'), lg('#ffb627', 'Garage'), lg('#9dff4a', 'Concessionnaire'), lg('#8a5cff', 'Vêtements'), lg('#3b6bff', 'Commissariat'), lg('#ffd84a', 'Secret trouvé')));
+    body.append(c, h('div', { class: 'legend' }, lg('#ffffff', 'Toi'), lg('#ff2e88', 'Mission'), lg('#22e0ff', 'Kiosque et actualité'), lg('#ffb627', 'Garage'), lg('#9dff4a', 'Concessionnaire'), lg('#8a5cff', 'Vêtements'), lg('#3b6bff', 'Commissariat'), lg('#ffd84a', 'Secret trouvé'), this.app.net.count ? lg('#5cf2c4', 'Autres joueurs') : null));
   }
   private missionCard(def: MissionDef, status: HTMLElement | null, extra?: HTMLElement | null): HTMLElement {
     return h('div', { class: 'item' },
@@ -333,7 +397,7 @@ export class Menus {
         ...k('Joystick', 'Pousse dans une direction. À fond pour courir. En voiture, elle roule vers la direction choisie.'), ...k('Bouton rose', 'Interagir : monter, sortir, parler, entrer'), ...k('Frein', 'Freiner puis reculer'), ...k('Klaxon', 'Klaxonner')),
       h('span', { class: 'label', text: 'Manette' }), h('div', { class: 'keys' }, ...k('Stick gauche', 'Se déplacer · diriger'), ...k('RT / LT', 'Accélérer · freiner'), ...k('A', 'Interagir'), ...k('X', 'Klaxonner'), ...k('B', 'Courir · frein à main'), ...k('Start', 'Pause')),
       h('p', { class: 'muted', text: 'Astuce : la police te perd de vue derrière les bâtiments. Un garage peut repeindre ta voiture, si aucun agent ne regarde.' }),
-      h('span', { class: 'label', text: 'À propos' }), h('p', { class: 'muted', text: `${FICTION_NOTICE} ${FICTION_WEEKLY} Jeu solo : pas de discussion entre joueurs.` }));
+      h('span', { class: 'label', text: 'À propos' }), h('p', { class: 'muted', text: `${FICTION_NOTICE} ${FICTION_WEEKLY} Aucune discussion entre joueurs, en solo comme en ligne.` }));
   }
 
   // ---------- Boutiques ----------
@@ -413,7 +477,7 @@ export class Menus {
     const cost = e.price(120);
     const body = h('div', { class: 'body' },
       h('div', { class: 'creator' }, h('div', { class: 'preview' }, pv.el, h('span', { class: 'pill', text: `${e.money.toLocaleString('fr-FR')} ¤` })), this.lookEditor(look, pv.draw)),
-      h('div', { class: 'row' }, h('button', { class: 'btn primary', text: `Valider la tenue · ${cost} ¤`, onclick: () => { if (e.pay(cost, 'tenue')) { w.player.look = { ...look }; pv.stop(); void this.app.saveNow('tenue'); this.close(); } } })));
+      h('div', { class: 'row' }, h('button', { class: 'btn primary', text: `Valider la tenue · ${cost} ¤`, onclick: () => { if (e.pay(cost, 'tenue')) { w.player.look = { ...look }; pv.stop(); void this.app.saveNow('tenue'); this.app.net.lookChanged(); this.close(); } } })));
     this.mount('shop', this.window(title, body, { onClose: () => { pv.stop(); this.close(); } }));
   }
   private shopKiosk(title: string): void {

@@ -20,6 +20,11 @@ import { UI } from './ui/UI';
 import { Vehicle } from './vehicles/Vehicle';
 import type { VehicleType } from './vehicles/specs';
 import type { App } from './app';
+import { NetSystem } from './net/NetSystem';
+import type { NetTarget } from './net/NetSystem';
+import { localTransport } from './net/transport';
+import { trysteroTransport } from './net/trystero';
+import { normalizeGroupCode } from './net/protocol';
 // Les missions de l'histoire sont aussi embarquées dans le code : le jeu démarre même si le fichier est injoignable.
 import storyBundled from '../public/data/missions/story.json';
 
@@ -72,6 +77,7 @@ class Game implements App {
   canDownload = true;
   playing = false;
   ui!: UI;
+  net!: NetSystem;
   phaser!: Phaser.Game;
   quality: Quality = 'high';
   private fpsLow = 0;
@@ -88,6 +94,12 @@ class Game implements App {
     const map = generateCity();
     this.world = new World(map);
     this.audio = new AudioSystem(this.world);
+    // Jeu en ligne : pair-à-pair sur le site du jeu ; indisponible dans la version en un seul fichier (cadre intégré).
+    // ?net=local : les onglets d'un même navigateur jouent ensemble (développement et tests).
+    const netMode = new URLSearchParams(location.search).get('net');
+    const p2pOk = !import.meta.env.VITE_SINGLE_FILE && typeof RTCPeerConnection !== 'undefined';
+    this.net = new NetSystem(this.world, netMode === 'local' ? () => localTransport() : p2pOk ? () => trysteroTransport() : null);
+    this.world.bus.on('playerHorn', () => this.net.horn());
     msg('Lecture des nouvelles de la semaine…');
     await this.loadData();
     msg('Allumage des néons…');
@@ -103,6 +115,7 @@ class Game implements App {
       onFrame: (dt) => this.frame(dt),
       paintOpts: () => ({ glows: QUALITY[this.quality].glows, reflections: QUALITY[this.quality].reflections, lighting: this.world.mods.lighting, decor: this.world.mods.decor, billboard: this.world.mods.billboard }),
       effects: () => ({ glows: QUALITY[this.quality].glows, particles: QUALITY[this.quality].particles, rain: this.quality === 'high' }),
+      remotes: () => this.net.peers.values(),
     };
     this.phaser = new Phaser.Game({
       type: Phaser.AUTO, parent: 'game', width: size.w, height: size.h, backgroundColor: '#0b0a16',
@@ -203,12 +216,43 @@ class Game implements App {
     this.playing = true;
     this.audio.unlock();
     this.ui.showGame();
+    const online = () => {
+      if (this.net.status === 'unavailable') { this.intro(); return; }
+      if (this.settings.online === 'ask') {
+        this.world.paused = true;
+        this.ui.menus.showOnlineConsent((on) => {
+          this.settings.online = on ? 'on' : 'off';
+          void this.save.saveSettings(this.settings);
+          this.world.paused = false;
+          if (on) this.connectSaved();
+          this.intro();
+        });
+        return;
+      }
+      if (this.settings.online === 'on') this.connectSaved();
+      this.intro();
+    };
     if (!this.settings.shownStorageNotice) {
       this.settings.shownStorageNotice = true;
       void this.save.saveSettings(this.settings);
       this.world.paused = true;
-      this.ui.menus.showStorageNotice(() => { this.world.paused = false; this.intro(); });
-    } else this.intro();
+      this.ui.menus.showStorageNotice(() => { this.world.paused = false; online(); });
+    } else online();
+  }
+  private connectSaved(): void {
+    const code = normalizeGroupCode(this.settings.netGroup);
+    void this.net.connect(code ? { kind: 'group', code } : { kind: 'public' });
+  }
+  goOnline(target: NetTarget): void {
+    this.settings.online = 'on';
+    this.settings.netGroup = target.kind === 'group' ? target.code : '';
+    void this.save.saveSettings(this.settings);
+    if (this.playing) void this.net.connect(target);
+  }
+  goOffline(): void {
+    this.settings.online = 'off';
+    void this.save.saveSettings(this.settings);
+    void this.net.disconnect();
   }
   private intro(): void {
     const w = this.world;
@@ -238,6 +282,7 @@ class Game implements App {
   toMenu(): void {
     void this.saveNow('menu').then(() => {
       this.playing = false;
+      void this.net.disconnect(false);
       this.world.toAttract();
       this.ui.showMain();
     });
@@ -263,6 +308,7 @@ class Game implements App {
 
   // ---------- Chaque frame ----------
   private frame(dt: number): void {
+    this.net.update(dt, this.playing);
     this.audio.update(dt);
     this.ui.update(dt);
     // Qualité automatique : on allège si l'appareil peine.

@@ -72,8 +72,14 @@ export async function openStore(): Promise<KV> {
 const SLOT = 'save-1';
 const SETTINGS = 'settings';
 
-export interface Settings { sound: boolean; music: boolean; volume: number; quality: 'auto' | 'low' | 'medium' | 'high'; touch: 'auto' | 'on' | 'off'; shownStorageNotice: boolean; }
-export const DEFAULT_SETTINGS: Settings = { sound: true, music: true, volume: 0.7, quality: 'auto', touch: 'auto', shownStorageNotice: false };
+export interface Settings {
+  sound: boolean; music: boolean; volume: number; quality: 'auto' | 'low' | 'medium' | 'high'; touch: 'auto' | 'on' | 'off'; shownStorageNotice: boolean;
+  /** Jeu en ligne : 'ask' tant que le joueur n'a pas choisi. */
+  online: 'ask' | 'on' | 'off';
+  /** Code du groupe privé ('' = ville publique). */
+  netGroup: string;
+}
+export const DEFAULT_SETTINGS: Settings = { sound: true, music: true, volume: 0.7, quality: 'auto', touch: 'auto', shownStorageNotice: false, online: 'ask', netGroup: '' };
 
 /** Sauvegarde automatique locale + export/import de fichier. Aucun compte, aucun serveur. */
 export class SaveSystem {

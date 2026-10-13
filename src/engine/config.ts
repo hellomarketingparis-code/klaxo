@@ -10,7 +10,7 @@ export const CHUNKS_X = Math.ceil(MAP_W / CHUNK_TILES);
 export const CHUNKS_Y = Math.ceil(MAP_H / CHUNK_TILES);
 /** Graine fixe : la ville est identique pour tous les joueurs et pour l'outil de génération hebdomadaire. */
 export const WORLD_SEED = 0x4b4c4158; // "KLAX"
-export const GAME_VERSION = '0.1.0';
+export const GAME_VERSION = '0.2.0';
 export const SAVE_VERSION = 1;
 /** Pas de simulation maximal (s). Au-delà, la frame est découpée. */
 export const MAX_DT = 1 / 30;

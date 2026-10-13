@@ -2,7 +2,7 @@
 
 **Jouer : https://hellomarketingparis-code.github.io/klaxo/**
 
-Jeu d'action et d'exploration en ville, en pixel art vu du dessus, pour navigateur. Solo, gratuit, jouable hors ligne après le premier chargement. Chaque semaine, une nouvelle mission satirique inspirée d'un fait d'actualité réel apparaît au kiosque de la ville.
+Jeu d'action et d'exploration en ville, en pixel art vu du dessus, pour navigateur. Gratuit, en solo ou en ligne avec les autres joueurs (sans aucune discussion), jouable hors ligne après le premier chargement. Chaque semaine, une nouvelle mission satirique inspirée d'un fait d'actualité réel apparaît au kiosque de la ville.
 
 Tout est généré par le code : la ville, les bâtiments, les voitures, les personnages, les sons et la musique. Le dépôt ne contient aucune image ni aucun fichier audio, à part les icônes de l'application, elles-mêmes dessinées par un script.
 
@@ -28,8 +28,8 @@ npm run preview    # sert dist/ sur http://localhost:4173
 
 | Commande | Effet |
 | --- | --- |
-| `npm test` | 65 tests automatisés de la simulation (ville, circulation, police, missions, sauvegarde, données) |
-| `npm run test:e2e` | 28 vérifications dans un vrai navigateur (Chromium), clavier et tactile. Lancer `npm run build` avant. |
+| `npm test` | 81 tests automatisés de la simulation (ville, circulation, police, missions, sauvegarde, données) |
+| `npm run test:e2e` | 34 vérifications dans un vrai navigateur (Chromium), clavier et tactile. Lancer `npm run build` avant. |
 | `npm run validate:data` | Valide tous les fichiers de `public/data` |
 | `npm run weekly` | Génère la mission de la semaine à partir des flux d'actualité |
 | `npm run build:single` | Produit `single/klaxo.html` : tout le jeu dans un seul fichier, sans mode hors ligne |
@@ -54,10 +54,12 @@ Jouable dès maintenant :
 - Sauvegarde automatique locale (IndexedDB), export et import de fichier.
 - Commandes clavier, tactiles et manette. Interface adaptée au téléphone en paysage.
 - Fonctionnement hors ligne (PWA) et installation sur l'écran d'accueil.
+- Jeu en ligne, pair-à-pair et gratuit : on croise les autres joueurs dans la ville (à pied ou en voiture), on entend leur klaxon et on fait les missions ensemble (invitation, objets ramassés et étapes partagés, récompense pour chacun). Villes publiques de 8 joueurs, en nombre illimité, et groupes privés par code. Aucune discussion : les noms sont attribués au hasard et aucun texte saisi par un joueur ne circule. Voir [docs/EN-LIGNE.md](docs/EN-LIGNE.md).
+- Un avertissement « jeu de fiction » à l'accueil, avant la première partie et sur chaque mission d'actualité.
 
 Prévu, pas encore fait :
 
-- Compte utilisateur, sauvegarde dans le cloud, classement mondial. L'architecture les permet (voir `src/save/SaveSystem.ts`, interface `KV`), rien n'est implémenté.
+- Compte utilisateur, sauvegarde dans le cloud, classement mondial, poursuites de police partagées entre joueurs. L'architecture les permet (voir `src/save/SaveSystem.ts`, interface `KV`), rien n'est implémenté.
 - Intérieurs de bâtiments, activités supplémentaires, davantage de missions d'histoire.
 - Traduction : l'interface et les missions sont en français.
 
@@ -65,8 +67,8 @@ Prévu, pas encore fait :
 
 Testé automatiquement dans cet environnement :
 
-- La simulation complète sans affichage : 63 tests, dont un pilote automatique qui conduit réellement de l'épicerie à l'hôtel pour la mission 1, une filature menée de bout en bout, et l'infiltration.
-- Le jeu compilé dans Chromium (Playwright) : les 15 critères de validation de la première version, la sauvegarde après rechargement, le fonctionnement hors ligne, les données invalides, et un téléphone émulé (écran 844 × 390, tactile multipoint).
+- La simulation complète sans affichage : 81 tests, dont 16 pour le jeu en ligne (format des messages, villes pleines, mission complète en équipe sur un réseau simulé), dont un pilote automatique qui conduit réellement de l'épicerie à l'hôtel pour la mission 1, une filature menée de bout en bout, et l'infiltration.
+- Le jeu compilé dans Chromium (Playwright) : les 15 critères de validation de la première version, la sauvegarde après rechargement, le fonctionnement hors ligne, les données invalides, un téléphone émulé (écran 844 × 390, tactile multipoint) et deux onglets qui jouent ensemble (se voir, se suivre, mission en équipe, klaxon, départ).
 
 Vérifié en ligne le 13 octobre 2026 : le jeu publié sur GitHub Pages démarre avec sa mission de la semaine et son mode hors ligne ; le robot hebdomadaire a lu les 11 flux d'actualité (240 titres), produit une mission valide, l'a enregistrée dans le dépôt et a republié le jeu.
 
@@ -77,6 +79,7 @@ Non testé, à vérifier sur de vrais appareils :
 - **Le son.** Le code audio s'exécute sans erreur, mais personne n'a écouté le résultat.
 - **La réécriture des textes par une IA** (facultative, nécessite une clé d'API).
 - **La manette**, codée mais non testée.
+- **Le jeu en ligne entre deux vrais appareils sur internet.** La logique de jeu à plusieurs est testée (réseau simulé et deux onglets), mais la mise en relation par les relais publics n'a pas pu être essayée depuis cet environnement, qui bloque ces relais. Voir [docs/EN-LIGNE.md](docs/EN-LIGNE.md) pour le test à faire.
 - **Le plaisir de jeu.** Les réglages (vitesses, chronomètres, sévérité de la police) ont été calibrés par simulation, pas par des joueurs.
 
 ## Organisation du code
@@ -100,6 +103,7 @@ src/
   ui/         interface HTML : accueil, HUD, menus, boutiques, tactile
   audio/      sons et musique synthétisés
   input/      clavier, tactile, manette
+  net/        jeu en ligne : format des messages, transports (pair-à-pair, local, mémoire), villes, coopération
 public/data/  missions et réglages modifiables sans toucher au code
 tools/        générateur hebdomadaire, validation, schémas, icônes, service worker
 tests/        tests de la simulation        e2e/  tests dans le navigateur

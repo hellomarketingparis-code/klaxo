@@ -102,6 +102,7 @@ export class MissionManager {
     this.active = new MissionRunner(w, def);
     this.refreshGivers();
     this.active.start(fromStep);
+    w.bus.emit('missionStart', { id: def.id, kind: def.kind, step: fromStep });
     w.bus.emit('card', { title: def.title, subtitle: def.kind === 'weekly' ? 'Mission de l’actualité' : def.kind === 'side' ? 'Événement de rue' : 'Mission', kind: 'start' });
     w.bus.emit('sfx', { name: 'start' });
     w.bus.emit('save', { reason: 'mission' });
@@ -156,6 +157,7 @@ export class MissionManager {
     const ok = r.state === 'success';
     r.cleanup();
     this.active = null;
+    w.bus.emit('missionEnd', { id: def.id, ok });
     const now = new Date().toISOString();
     if (ok) {
       const first = !this.done[def.id];

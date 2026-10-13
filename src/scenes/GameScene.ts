@@ -13,9 +13,13 @@ import { GUARD_FOV, GUARD_RANGE } from '../missions/MissionRunner';
 import type { GuardState } from '../missions/MissionRunner';
 import type { World } from '../world/World';
 import type { Intent } from '../player/Player';
+import type { RemotePlayer } from '../net/NetSystem';
+import { DEFAULT_LOOK } from '../npc/looks';
+import { VEHICLES } from '../vehicles/specs';
 
 interface ChunkView { img: Phaser.GameObjects.Image; key: string; objs: Phaser.GameObjects.GameObject[]; lights: { node: number; arm: number; img: Phaser.GameObjects.Image; glow: Phaser.GameObjects.Image }[]; }
 interface VehView { body: Phaser.GameObjects.Image; shadow: Phaser.GameObjects.Image; beam: Phaser.GameObjects.Image; tail: Phaser.GameObjects.Image; siren?: Phaser.GameObjects.Image; key: string; smokeT: number; }
+interface RemoteView { body: Phaser.GameObjects.Image; shadow: Phaser.GameObjects.Image; beam: Phaser.GameObjects.Image; tail: Phaser.GameObjects.Image; ped: Phaser.GameObjects.Sprite; carKey: string; pedKey: string; }
 interface Particle { img: Phaser.GameObjects.Image; vx: number; vy: number; life: number; max: number; grow: number; a0: number; }
 
 export interface SceneDeps {
@@ -26,6 +30,8 @@ export interface SceneDeps {
   onFrame: (dt: number) => void;
   paintOpts: () => PaintOpts;
   effects: () => { glows: boolean; particles: boolean; rain: boolean };
+  /** Autres joueurs en ligne (positions déjà interpolées). */
+  remotes: () => Iterable<RemotePlayer>;
 }
 
 const DEPTH = { ground: 0, decal: 1, shadow: 3, ped: 5, player: 5.5, car: 6, tl: 7, tree: 8, light: 9, fx: 10, marker: 11 };
@@ -39,6 +45,7 @@ export class GameScene extends Phaser.Scene {
   private queue: number[] = [];
   private vehViews = new Map<number, VehView>();
   private pedViews = new Map<number, Phaser.GameObjects.Sprite>();
+  private remoteViews = new Map<string, RemoteView>();
   private playerSprite!: Phaser.GameObjects.Sprite;
   private carry!: Phaser.GameObjects.Image;
   private gfx!: Phaser.GameObjects.Graphics;
@@ -250,6 +257,7 @@ export class GameScene extends Phaser.Scene {
     this.syncVehicles(dt, fx);
     this.syncPeds();
     this.syncPlayer();
+    this.syncRemotes(fx);
     this.drawOverlays();
     this.updateParticles(dt);
     if (fx.rain) {
@@ -364,6 +372,52 @@ export class GameScene extends Phaser.Scene {
     if (carrying) {
       this.carry.setTexture(p.carrying === 'neon' ? 'ic_neon' : 'ic_box').setScale(0.7);
       this.carry.setPosition(p.x - Math.cos(p.angle) * 5, p.y - Math.sin(p.angle) * 5).setRotation(p.angle);
+    }
+  }
+
+  /** Autres joueurs en ligne : simples silhouettes (aucune collision avec la ville de ce joueur). */
+  private syncRemotes(fx: { glows: boolean }): void {
+    const cam = this.cameras.main;
+    const seen = new Set<string>();
+    for (const r of this.deps.remotes()) {
+      if (!r.snaps.length) continue; // position pas encore reçue
+      seen.add(r.id);
+      let v = this.remoteViews.get(r.id);
+      const pedKey = this.ensurePed(r.look ?? DEFAULT_LOOK);
+      const carKey = this.ensureCar(r.vt, r.vc, false);
+      if (!v) {
+        v = {
+          body: this.add.image(r.x, r.y, carKey).setDepth(DEPTH.car),
+          shadow: this.add.image(r.x, r.y, carKey).setDepth(DEPTH.shadow).setTintFill(0x05040f).setAlpha(0.4),
+          beam: this.add.image(r.x, r.y, 'beam').setOrigin(0, 0.5).setDepth(DEPTH.light).setBlendMode(Phaser.BlendModes.ADD).setTint(0xfff0c8).setAlpha(0.5),
+          tail: this.add.image(r.x, r.y, 'glow').setDepth(DEPTH.light).setBlendMode(Phaser.BlendModes.ADD).setTint(0xff2a2a).setScale(0.3).setAlpha(0.45),
+          ped: this.add.sprite(r.x, r.y, pedKey, 0).setDepth(DEPTH.player - 0.1),
+          carKey, pedKey,
+        };
+        this.remoteViews.set(r.id, v);
+      }
+      if (v.carKey !== carKey) { v.body.setTexture(carKey); v.shadow.setTexture(carKey); v.carKey = carKey; }
+      if (v.pedKey !== pedKey) { v.ped.setTexture(pedKey, 0); v.pedKey = pedKey; }
+      const vis = Math.abs(r.x - this.camX) < cam.width / 2 + 70 && Math.abs(r.y - this.camY) < cam.height / 2 + 70;
+      const car = r.mode === 1;
+      v.body.setVisible(vis && car); v.shadow.setVisible(vis && car);
+      v.beam.setVisible(vis && car && fx.glows); v.tail.setVisible(vis && car && fx.glows);
+      v.ped.setVisible(vis && !car);
+      if (!vis) continue;
+      if (car) {
+        const cos = Math.cos(r.a), sin = Math.sin(r.a), h = VEHICLES[r.vt].len / 2;
+        v.body.setPosition(r.x, r.y).setRotation(r.a);
+        v.shadow.setPosition(r.x + 2, r.y + 3).setRotation(r.a);
+        v.beam.setPosition(r.x + cos * (h - 1), r.y + sin * (h - 1)).setRotation(r.a);
+        v.tail.setPosition(r.x - cos * h, r.y - sin * h);
+      } else {
+        v.ped.setPosition(r.x, r.y).setRotation(r.a).setFrame(r.moving ? 1 + (Math.floor(r.animT) % 4) : 0);
+      }
+    }
+    for (const [id, v] of this.remoteViews) {
+      if (seen.has(id)) continue;
+      v.body.destroy(); v.shadow.destroy(); v.beam.destroy(); v.tail.destroy(); v.ped.destroy();
+      this.remoteViews.delete(id);
     }
   }
 

@@ -6,6 +6,7 @@ import type { SaveSystem, Settings } from './save/SaveSystem';
 import type { Look } from './npc/looks';
 import type { MissionDef, ArchiveIndex } from './missions/schema';
 import type { WeeklyChangesFile } from './weekly/WorldModifiers';
+import type { NetSystem, NetTarget } from './net/NetSystem';
 
 /** Ce que l'interface connaît de l'application. */
 export interface App {
@@ -31,4 +32,8 @@ export interface App {
   resetSave(): Promise<void>;
   fetchArchive(file: string): Promise<MissionDef | null>;
   setPaused(on: boolean): void;
+  /** Jeu en ligne. */
+  net: NetSystem;
+  goOnline(target: NetTarget): void;
+  goOffline(): void;
 }

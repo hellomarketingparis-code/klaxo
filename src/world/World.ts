@@ -309,7 +309,7 @@ export class World {
     this.bus.emit('sfx', { name: v.type === 'truck' || v.type === 'van' ? 'horn_low' : 'horn', x: v.x, y: v.y });
     const fx = v.x + Math.cos(v.angle) * 26, fy = v.y + Math.sin(v.angle) * 26;
     this.pedSys.react('honk', fx, fy, 85);
-    if (v.driver === 'player') { this.playerHonked = true; this.economy.stat('honks', 1); }
+    if (v.driver === 'player') { this.playerHonked = true; this.economy.stat('honks', 1); this.bus.emit('playerHorn', { x: v.x, y: v.y }); }
   }
 
   bust(): void {

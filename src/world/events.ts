@@ -21,5 +21,14 @@ export interface WorldEvents {
   achievement: { id: string; name: string };
   secret: { found: number; total: number };
   playerVehicle: { entered: boolean };
+  /** Le joueur klaxonne (entendu par les autres joueurs en ligne). */
+  playerHorn: { x: number; y: number };
+  /** Missions : annonces utilisées par le jeu en coopération (voir net/NetSystem). */
+  missionStart: { id: string; kind: string; step: number };
+  missionStep: { id: string; step: number };
+  missionCollect: { id: string; step: number; idx: number };
+  missionEnd: { id: string; ok: boolean };
+  /** Jeu en ligne : changement d'état (connexion, joueurs, invitation). */
+  net: { what: 'status' | 'peers' | 'invite' | 'session' };
 }
 export interface DialogLine { who: string; text: string; look?: string; }

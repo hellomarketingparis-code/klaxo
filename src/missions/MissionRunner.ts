@@ -36,6 +36,10 @@ export class MissionRunner {
   private fired = new Set<number>();
   private st: any = {};
   private carried: ItemDef | null = null;
+  /** Coopération : dernière étape terminée par un coéquipier, appliquée dès que possible. */
+  private pendingSkip = -1;
+  /** Coopération : objets déjà ramassés par l'équipe à l'étape en cours. */
+  private teamCollected = new Set<number>();
 
   constructor(private w: World, public def: MissionDef) {}
 
@@ -161,6 +165,7 @@ export class MissionRunner {
     this.stepTime = 0; this.timeLeft = s.timeLimit ?? null;
     this.meter = null; this.hint = null; this.prompt = null; this.markers = []; this.st = {}; this.fired.clear();
     if (s.checkpoint || i === 0) this.checkpointStep = i;
+    this.teamCollected.clear();
     this.objective = s.objective;
     this.run(s.onStart);
     const st = this.st;
@@ -173,7 +178,7 @@ export class MissionRunner {
         break;
       }
       case 'goto': case 'deliver': case 'observe': case 'leave': case 'pickup': st.p = this.pos(s.target); st.t = 0; st.hits = 0; st.cd = 0; break;
-      case 'collect': st.left = s.targets.map((t) => this.pos(t)); st.total = s.targets.length; break;
+      case 'collect': st.left = s.targets.map((t, idx) => ({ ...this.pos(t), idx })).filter((q) => !this.teamCollected.has(q.idx)); st.total = s.targets.length; break;
       case 'checkpoints': st.pts = s.targets.map((t) => this.pos(t)); st.idx = 0; break;
       case 'tail': {
         const m = w.map;
@@ -204,6 +209,7 @@ export class MissionRunner {
 
   private next(): void {
     const s = this.step!;
+    this.w.bus.emit('missionStep', { id: this.def.id, step: this.stepIndex });
     this.run(s.onComplete);
     this.w.bus.emit('sfx', { name: 'step' });
     if (this.stepIndex + 1 >= this.def.steps.length) this.finish();
@@ -256,8 +262,46 @@ export class MissionRunner {
     return false;
   }
 
+  // ---------- Coopération ----------
+  /** Un coéquipier a terminé l'étape `step` : on avance aussi (dès que l'écran de dialogue éventuel est fermé). */
+  teamStepDone(step: number): void {
+    if (this.state !== 'running' || step < this.stepIndex) return;
+    this.pendingSkip = Math.max(this.pendingSkip, step);
+  }
+  /** Un coéquipier a ramassé l'objet `idx` de l'étape `step`. */
+  teamCollect(step: number, idx: number): void {
+    if (this.state !== 'running' || step !== this.stepIndex) return;
+    this.teamCollected.add(idx);
+    const s = this.step;
+    if (s?.type === 'collect' && Array.isArray(this.st.left)) this.st.left = (this.st.left as { idx: number }[]).filter((q) => q.idx !== idx);
+  }
+  /** Objets déjà ramassés à l'étape en cours (pour mettre à jour un coéquipier qui arrive). */
+  collectedNow(): number[] {
+    const s = this.step;
+    if (s?.type !== 'collect' || !Array.isArray(this.st.left)) return [];
+    const left = new Set((this.st.left as { idx: number }[]).map((q) => q.idx));
+    return s.targets.map((_, i) => i).filter((i) => !left.has(i));
+  }
+  /** Saute directement à l'étape `target` (terminée ailleurs par l'équipe). Les dialogues des étapes sautées ne sont pas rejoués. */
+  private skipTo(target: number): void {
+    const w = this.w;
+    for (let i = this.stepIndex; i < Math.min(target, this.def.steps.length); i++) {
+      const s = this.def.steps[i];
+      this.run((s.onComplete ?? []).filter((a) => a.do !== 'dialog' && a.do !== 'reveal'));
+      if (s.type === 'pickup') this.carried = s.item;
+      if (s.type === 'deliver') this.carried = null;
+    }
+    w.player.carrying = this.carried?.id ?? null;
+    w.bus.emit('sfx', { name: 'step' });
+    w.bus.emit('toast', { text: 'Ton équipe a réussi l’étape.', kind: 'good', ttl: 2.5 });
+    if (target >= this.def.steps.length) this.finish();
+    else this.begin(target);
+  }
+
   update(dt: number): void {
     if (this.state !== 'running' || this.waiting) return;
+    if (this.pendingSkip >= this.stepIndex) { const t = this.pendingSkip + 1; this.pendingSkip = -1; this.skipTo(t); return; }
+    this.pendingSkip = -1;
     const w = this.w, p = w.player, s = this.step!;
     const st = this.st;
     this.stepTime += dt;
@@ -361,9 +405,10 @@ export class MissionRunner {
       case 'lose_wanted': if (w.wanted.level === 0) return this.next(); break;
       case 'collect': {
         const r = (s.radius ?? 1.6) * TILE;
-        st.left = (st.left as { x: number; y: number }[]).filter((q) => {
+        st.left = (st.left as { x: number; y: number; idx: number }[]).filter((q) => {
           if (dist(px, py, q.x, q.y) >= r) return true;
           w.bus.emit('sfx', { name: 'pickup' });
+          w.bus.emit('missionCollect', { id: this.def.id, step: this.stepIndex, idx: q.idx });
           return false;
         });
         for (const q of st.left) this.markers.push({ x: q.x, y: q.y, kind: 'item' });

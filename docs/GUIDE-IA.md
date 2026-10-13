@@ -34,6 +34,7 @@ Du code qui compile ne prouve pas qu'il est jouable. Les tests de `tests/` font 
 | régler la police | `src/police/PoliceSystem.ts` et `WantedSystem.ts` |
 | modifier l'interface | `src/ui/` et `src/ui/styles.css` |
 | ajouter un son | `src/audio/AudioSystem.ts` |
+| modifier le jeu en ligne | `src/net/` (messages dans `protocol.ts`, coopération dans `NetSystem.ts`), voir `docs/EN-LIGNE.md` |
 
 ## Les règles à rappeler à l'IA
 
@@ -43,7 +44,8 @@ Copiez-les au début de vos demandes.
 - Toute nouvelle règle de jeu arrive avec son test dans `tests/`.
 - Les données ne contiennent jamais de code. Une nouvelle possibilité passe par une mécanique ou une action ajoutée au moteur et à la validation.
 - Pas de fichier image ni audio : tout est dessiné ou synthétisé par le code.
-- Pas de serveur, pas d'appel réseau pendant une partie.
+- Pas de serveur. En solo, aucun appel réseau pendant une partie. En ligne, uniquement les échanges entre joueurs de `src/net/`.
+- Jeu en ligne : aucun texte libre ne doit circuler entre joueurs (pas de discussion, pas de pseudonyme partagé). Tout nouveau message passe par une fonction de validation dans `src/net/protocol.ts`, avec son test.
 - La ville est déterministe (graine fixe dans `src/engine/config.ts`). Modifier le générateur déplace des lieux : relancer `npm run validate:data` et les tests, qui signalent toute mission devenue infaisable.
 - Changer le format de sauvegarde demande d'augmenter `SAVE_VERSION` et de gérer les anciennes sauvegardes dans `World.restore`.
 

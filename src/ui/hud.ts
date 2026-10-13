@@ -17,6 +17,8 @@ export class Hud {
   private xp = h('i');
   private stars = h('div', { id: 'stars', role: 'img' });
   private district = h('div', { class: 'hud-district' });
+  private netPill = h('button', { id: 'netpill', hidden: true, 'aria-label': 'Jeu en ligne' });
+  private netKey = '';
   private vehicle = h('div', { id: 'vehicle', class: 'pill', hidden: true });
   private vName = h('div', { class: 'v-name' });
   private vSpeed = h('div', { class: 'v-speed' });
@@ -42,7 +44,8 @@ export class Hud {
   private mapT = 0;
   private lastObjective = '';
 
-  constructor(private app: App, onPause: () => void, onMap: () => void) {
+  constructor(private app: App, onPause: () => void, onMap: () => void, onNet: () => void = () => {}) {
+    this.netPill.onclick = onNet;
     this.minimap = h('canvas', { id: 'minimap', title: 'Ouvrir la carte', onclick: onMap });
     for (let i = 0; i < 5; i++) this.stars.append(h('i'));
     this.vehicle.append(this.vName, this.vSpeed, this.vBarWrap);
@@ -50,7 +53,7 @@ export class Hud {
     this.meter.append(this.mLabel, this.mBarWrap);
     this.prompt.append(this.pKey, this.pText);
     this.root = h('div', { id: 'hud', hidden: true },
-      h('div', { class: 'hud-tl' }, this.minimap, this.district),
+      h('div', { class: 'hud-tl' }, this.minimap, this.district, this.netPill),
       h('div', { class: 'hud-tc' }, this.objective, this.timer, this.meter, this.hint),
       h('div', { class: 'hud-tr' },
         h('div', { class: 'hud-row' }, this.stars, h('button', { id: 'btn-pause', 'aria-label': 'Pause', onclick: onPause })),
@@ -114,6 +117,18 @@ export class Hud {
     this.prompt.hidden = !pr || touch;
     if (pr && !touch) { this.pKey.textContent = input.lastDevice === 'gamepad' ? 'A' : 'E'; this.pText.textContent = pr.label; }
 
+    // Indicateur de jeu en ligne.
+    const net = this.app.net;
+    const key = `${net.status}|${net.count}|${net.placeLabel}|${net.session ? net.partners().length : -1}`;
+    if (key !== this.netKey) {
+      this.netKey = key;
+      const st = net.status;
+      this.netPill.hidden = st === 'off' || st === 'unavailable';
+      this.netPill.className = st;
+      const team = net.session ? net.partners().length : 0;
+      this.netPill.textContent = st === 'online' ? `En ligne · ${net.count + 1} joueur${net.count ? 's' : ''}${team ? ` · équipe ${team + 1}` : ''}` : st === 'connecting' ? 'Connexion…' : 'Hors ligne';
+      this.netPill.title = st === 'online' ? net.placeLabel : net.error;
+    }
     this.updateArrow();
     this.mapT -= dt;
     if (this.mapT <= 0) { this.mapT = 0.08; this.drawMinimap(); }
@@ -175,6 +190,9 @@ export class Hud {
     if (side) dot(side.x, side.y, '#ffd84a', u + 1, true);
     const r = w.missions.active;
     if (r) for (const mk of r.markers) dot(mk.x, mk.y, mk.kind === 'checkpoint' ? '#22e0ff' : '#ff2e88', mk.dim ? u : u + 1, !mk.dim);
+    // Autres joueurs en ligne ; les coéquipiers restent visibles au bord de la carte.
+    const sid = this.app.net.session?.sid;
+    for (const q of this.app.net.peers.values()) if (q.snaps.length) dot(q.x, q.y, q.color, sid && q.sid === sid ? u + 1 : u, !!sid && q.sid === sid);
     if (w.wanted.level > 0) {
       const blink = Math.floor(w.time * 4) % 2;
       for (const v of w.vehicles) if (v.type === 'police' && v.siren) dot(v.x, v.y, blink ? '#ff3b3b' : '#3b6bff', u);
@@ -213,6 +231,7 @@ export class Hud {
     for (const [id, ped] of w.missions.givers) mark(ped.x, ped.y, w.missions.find(id)?.kind === 'weekly' ? '#22e0ff' : '#ff2e88', 'M', 7);
     const r = w.missions.active;
     if (r) for (const mk of r.markers) mark(mk.x, mk.y, '#ff2e88', '!', 7);
+    for (const q of this.app.net.peers.values()) if (q.snaps.length) mark(q.x, q.y, q.color, undefined, 5);
     const p = w.player;
     const px = (p.px / TILE) * S, py = (p.py / TILE) * S;
     ctx.save(); ctx.translate(px, py); ctx.rotate(p.driving ? p.vehicle!.angle : p.angle);

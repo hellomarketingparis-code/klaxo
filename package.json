@@ -18,7 +18,8 @@
     "build:single": "node tools/make-single.mjs"
   },
   "dependencies": {
-    "phaser": "3.90.0"
+    "phaser": "3.90.0",
+    "trystero": "0.25.4"
   },
   "devDependencies": {
     "@types/node": "^22.20.5",

@@ -9,6 +9,7 @@ import { Hud } from './hud';
 import { Menus } from './menus';
 import { TouchControls } from './touch';
 import { h, clear } from './dom';
+import { autoName } from '../net/protocol';
 
 interface Bubble { el: HTMLElement; id: number; x: number; y: number; until: number; }
 
@@ -19,6 +20,10 @@ export class UI {
   touch: TouchControls;
   private root: HTMLElement;
   private bubblesEl = h('div', { id: 'bubbles' });
+  private tagsEl = h('div', { id: 'nametags' });
+  private tags = new Map<string, HTMLElement>();
+  private inviteEl: HTMLElement | null = null;
+  private knownPeers = new Set<string>();
   private toastsEl!: HTMLElement;
   private overlay = h('div', { id: 'overlay' });
   private banner = h('div', { id: 'banner' });
@@ -31,13 +36,13 @@ export class UI {
 
   constructor(private app: App, mountPoint: HTMLElement) {
     this.root = mountPoint;
-    this.hud = new Hud(app, () => this.togglePause(), () => this.openMap());
+    this.hud = new Hud(app, () => this.togglePause(), () => this.openMap(), () => this.openOnline());
     this.menus = new Menus(app, this.hud, this.overlay);
     this.touch = new TouchControls(app);
     this.menus.onChange = () => this.syncPause();
     this.toastsEl = this.hud.toasts;
     this.hud.root.append(this.banner);
-    mountPoint.append(this.bubblesEl, this.hud.root, this.touch.root, this.overlay);
+    mountPoint.append(this.tagsEl, this.bubblesEl, this.hud.root, this.touch.root, this.overlay);
 
     const bus = app.world.bus;
     bus.on('toast', (e) => this.toast(e.text, e.kind ?? 'info', e.ttl ?? 3.2));
@@ -48,6 +53,12 @@ export class UI {
     bus.on('busted', (e) => this.card('Arrêté !', `Amende : ${e.fine} ¤. Tu ressors du commissariat.`, 'fail'));
     bus.on('district', (e) => { if (app.playing) this.showBanner(DISTRICT_NAMES[e.id]); });
     bus.on('shop', (e) => this.openShop(e.poi));
+    bus.on('net', (e) => this.onNet(e.what));
+    window.addEventListener('keydown', (e) => {
+      if (!this.inviteEl || this.modal || e.repeat) return;
+      if (e.code === 'KeyJ') { e.preventDefault(); this.app.net.acceptInvite(); }
+      else if (e.code === 'KeyN') { e.preventDefault(); this.app.net.declineInvite(); }
+    });
     app.input.onKey = (k) => {
       if (k === 'pause') this.togglePause();
       else if (k === 'map') this.openMap();
@@ -71,13 +82,67 @@ export class UI {
     if (this.menus.open) { if (this.menus.kind === 'pause') this.menus.close(); } else this.menus.showPause('map');
     this.syncPause();
   }
+  openOnline(): void {
+    if (!this.app.playing || this.dialog || this.reveal) return;
+    if (!this.menus.open) { this.menus.showPause('online'); this.syncPause(); }
+  }
+  // ---------- Jeu en ligne ----------
+  private onNet(what: string): void {
+    const net = this.app.net;
+    if (what === 'invite') this.renderInvite();
+    if (what === 'status' && this.app.playing) {
+      if (net.status === 'online') this.toast(`En ligne · ${net.placeLabel}`, 'good', 3);
+      else if (net.status === 'error') this.toast(net.error, 'bad', 5);
+    }
+    if (what === 'peers' && this.app.playing && net.online) {
+      const now = new Set(net.peers.keys());
+      for (const id of now) if (!this.knownPeers.has(id)) this.toast(`${autoName(id)} arrive en ville.`, 'info', 2.5);
+      for (const id of this.knownPeers) if (!now.has(id)) this.toast(`${autoName(id)} a quitté la ville.`, 'info', 2.5);
+      this.knownPeers = now;
+    } else if (what === 'peers' && !net.online) this.knownPeers = new Set();
+  }
+  private renderInvite(): void {
+    this.inviteEl?.remove(); this.inviteEl = null;
+    const inv = this.app.net.invite;
+    if (!inv || !this.app.playing) return;
+    const touch = this.app.touchMode;
+    const el = h('div', { id: 'invite', role: 'alertdialog', 'aria-label': 'Invitation' },
+      h('div', { class: 'c-sub', text: 'Invitation' }),
+      h('div', null, h('b', { text: inv.name }), ' lance ', h('b', { text: `« ${inv.def.title} »` }), '. Tu fais équipe ?'),
+      h('div', { class: 'row' },
+        h('button', { class: 'btn small primary', text: touch ? 'Rejoindre' : 'Rejoindre (J)', onclick: () => this.app.net.acceptInvite() }),
+        h('button', { class: 'btn small', text: touch ? 'Non merci' : 'Non merci (N)', onclick: () => this.app.net.declineInvite() })));
+    this.hud.root.append(el);
+    this.inviteEl = el;
+  }
+  private updateTags(): void {
+    const app = this.app, net = app.net;
+    const seen = new Set<string>();
+    if (net.online && app.scene) {
+      const W = window.innerWidth, H = window.innerHeight, sid = net.session?.sid;
+      for (const p of net.peers.values()) {
+        if (!p.snaps.length) continue;
+        const s = app.scene.project(p.x, p.y - (p.mode === 1 ? 14 : 10));
+        if (s.x < -0.05 || s.x > 1.05 || s.y < -0.05 || s.y > 1.05) continue;
+        seen.add(p.id);
+        let el = this.tags.get(p.id);
+        if (!el) { el = h('div', { class: 'nametag' }); this.tagsEl.append(el); this.tags.set(p.id, el); }
+        const team = !!sid && p.sid === sid;
+        const text = `${team ? '◆ ' : ''}${p.name}${p.wanted ? ' ' + '★'.repeat(p.wanted) : ''}${p.hornT > 0 ? ' ♪' : ''}`;
+        if (el.textContent !== text) el.textContent = text;
+        el.style.borderColor = p.color; el.classList.toggle('team', team);
+        el.style.left = `${s.x * W}px`; el.style.top = `${s.y * H}px`;
+      }
+    }
+    for (const [id, el] of this.tags) if (!seen.has(id)) { el.remove(); this.tags.delete(id); }
+  }
   openShop(poi: string): void {
     if (this.menus.open) return;
     this.touch.reset();
     this.menus.showShop(poi);
     this.syncPause();
   }
-  showMain(): void { this.hud.root.hidden = true; this.touch.root.hidden = true; this.clearTransient(); this.menus.showMain(); }
+  showMain(): void { this.hud.root.hidden = true; this.touch.root.hidden = true; this.clearTransient(); this.inviteEl?.remove(); this.inviteEl = null; this.updateTags(); this.menus.showMain(); }
   showGame(): void { this.menus.close(); this.hud.root.hidden = false; this.syncPause(); }
   private clearTransient(): void {
     clear(this.toastsEl); clear(this.bubblesEl); this.bubbles = [];
@@ -186,6 +251,7 @@ export class UI {
     }
     if (!app.playing) return;
     this.hud.update(dt);
+    this.updateTags();
     const showTouch = app.touchMode && !this.menus.open;
     if (this.touch.root.hidden === showTouch) this.touch.root.hidden = !showTouch;
     if (showTouch) this.touch.update();
