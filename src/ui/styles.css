@@ -194,6 +194,8 @@ a { color: var(--cyan); }
 .weekly-card h3 { margin: 0; font-size: 18px; line-height: 1.2; text-wrap: balance; }
 .weekly-card p { margin: 0; font-size: 13px; color: var(--mute); }
 .menu-foot { font-family: var(--display); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--mute); }
+.fiction { margin: 0; max-width: 46ch; font-size: 11px; line-height: 1.4; color: var(--mute); border-left: 2px solid var(--amber); padding-left: 8px; }
+.fiction .short { display: none; }
 
 /* ---------- Tactile ---------- */
 #touch { position: absolute; inset: 0; }
@@ -229,6 +231,9 @@ a { color: var(--cyan); }
   #logo { width: 200px; }
   .menu-buttons .btn { padding: 8px 12px; font-size: 13px; }
   .menu-main { gap: 8px; }
+  .menu-intro { display: none; }
+  .fiction .long { display: none; }
+  .fiction .short { display: inline; }
   .menu-side { justify-self: end; align-self: center; }
   .tbtns { grid-template-columns: repeat(2, 62px); grid-template-rows: repeat(2, 62px); gap: 8px; bottom: calc(12px + var(--sab)); }
   #stick-base { width: 92px; height: 92px; margin: -46px 0 0 -46px; }

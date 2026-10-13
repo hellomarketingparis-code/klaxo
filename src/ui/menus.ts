@@ -9,6 +9,10 @@ import type { MissionDef } from '../missions/schema';
 import type { App } from '../app';
 import type { Hud } from './hud';
 
+/** Avertissement affiché à l'accueil, avant la première partie et dans l'aide. */
+export const FICTION_NOTICE = 'KLAXO est un jeu de fiction. La ville, ses habitants, ses entreprises et ses événements sont imaginaires ; toute ressemblance avec des personnes ou des organisations réelles serait fortuite.';
+export const FICTION_WEEKLY = 'Les missions de la semaine s’inspirent de l’actualité sur le ton de la satire : seul le titre de l’article cité est réel, tout le reste est inventé.';
+
 /** Hébergement sur claude.ai : les téléchargements passent par la fonction « downloads » de l'hébergeur. Ailleurs : null. */
 function hostDownloads(): { use: (name: string) => Promise<any> } | null {
   const c = (window as any).claude;
@@ -100,14 +104,17 @@ export class Menus {
         h('h3', { text: wk.title }),
         h('p', { text: wk.summary }),
         wk.news ? h('p', null, 'Inspirée d’un fait réel : ', h('a', { href: wk.news.url, target: '_blank', rel: 'noopener noreferrer', text: wk.news.headline }), ` (${wk.news.source}, ${fmtDate(wk.news.date)})`) : null,
+        h('p', { class: 'muted', text: 'Mission fictive et satirique : seul le titre de l’article cité est réel.' }),
         h('p', { class: 'muted', text: 'Rends-toi au kiosque de Jo, à Downtown, pour la jouer.' })));
     }
     const s = app.saveInfo;
     const foot = h('div', { class: 'menu-foot', text: `v${GAME_VERSION} · jeu solo · ${app.save.persistent ? 'sauvegarde locale' : 'sauvegarde indisponible sur ce navigateur'}${app.weekly.online ? '' : ' · hors ligne'}` });
     const main = h('div', { class: 'menu-main' }, logo,
       h('p', { class: 'tagline', text: 'La ville qui klaxonne l’actualité' }),
-      s ? h('p', { class: 'muted', style: { margin: '0' }, text: `${s.player.name || 'Sans nom'} · niveau ${s.level} · ${s.money.toLocaleString('fr-FR')} ¤ · ${fmtDuration(s.playTime ?? 0)} de jeu` }) : h('p', { class: 'muted', style: { margin: '0', maxWidth: '34ch' }, text: 'Conduis, explore, rends service. Chaque semaine, une nouvelle mission inspirée de l’actualité.' }),
-      buttons, foot);
+      s ? h('p', { class: 'muted', style: { margin: '0' }, text: `${s.player.name || 'Sans nom'} · niveau ${s.level} · ${s.money.toLocaleString('fr-FR')} ¤ · ${fmtDuration(s.playTime ?? 0)} de jeu` }) : h('p', { class: 'muted menu-intro', style: { margin: '0', maxWidth: '34ch' }, text: 'Conduis, explore, rends service. Chaque semaine, une nouvelle mission inspirée de l’actualité.' }),
+      buttons, foot, h('p', { class: 'fiction' },
+        h('span', { class: 'long', text: `${FICTION_NOTICE} ${FICTION_WEEKLY}` }),
+        h('span', { class: 'short', text: 'Jeu de fiction : la ville, ses habitants et ses missions sont imaginaires.' })));
     this.mount('menu', h('div', { class: 'menu' }, main, side));
   }
 
@@ -325,7 +332,8 @@ export class Menus {
       h('span', { class: 'label', text: 'Téléphone et tablette' }), h('div', { class: 'keys' },
         ...k('Joystick', 'Pousse dans une direction. À fond pour courir. En voiture, elle roule vers la direction choisie.'), ...k('Bouton rose', 'Interagir : monter, sortir, parler, entrer'), ...k('Frein', 'Freiner puis reculer'), ...k('Klaxon', 'Klaxonner')),
       h('span', { class: 'label', text: 'Manette' }), h('div', { class: 'keys' }, ...k('Stick gauche', 'Se déplacer · diriger'), ...k('RT / LT', 'Accélérer · freiner'), ...k('A', 'Interagir'), ...k('X', 'Klaxonner'), ...k('B', 'Courir · frein à main'), ...k('Start', 'Pause')),
-      h('p', { class: 'muted', text: 'Astuce : la police te perd de vue derrière les bâtiments. Un garage peut repeindre ta voiture, si aucun agent ne regarde.' }));
+      h('p', { class: 'muted', text: 'Astuce : la police te perd de vue derrière les bâtiments. Un garage peut repeindre ta voiture, si aucun agent ne regarde.' }),
+      h('span', { class: 'label', text: 'À propos' }), h('p', { class: 'muted', text: `${FICTION_NOTICE} ${FICTION_WEEKLY} Jeu solo : pas de discussion entre joueurs.` }));
   }
 
   // ---------- Boutiques ----------
@@ -418,7 +426,7 @@ export class Menus {
         h('div', { class: 'row' }, h('span', { class: 'tag news', text: 'À la une cette semaine' }), done ? h('span', { class: 'tag ok', text: 'Terminée' }) : null),
         h('h3', { text: wk.title }), h('div', { class: 'muted', text: wk.summary }),
         wk.news ? h('div', null, 'Fait réel : ', h('a', { href: wk.news.url, target: '_blank', rel: 'noopener noreferrer', text: wk.news.headline }), h('span', { class: 'muted', text: ` — ${wk.news.source}, ${fmtDate(wk.news.date)}` })) : null,
-        h('div', { class: 'muted', text: 'Les personnages et organisations de la mission sont fictifs.' }),
+        h('div', { class: 'muted', text: 'Mission fictive et satirique : seul le titre de l’article cité est réel. Personnages, organisations et dialogues sont inventés.' }),
         h('div', { class: 'row' }, h('button', { class: 'btn small primary', text: done ? 'Rejouer' : 'Accepter la mission', disabled: !!ms.active, onclick: () => { this.click(); this.close(); ms.accept(wk); } }),
           h('span', { class: 'meta', text: `${wk.reward.money} ¤ · ${wk.reward.xp} XP` }))));
     } else body.append(h('p', { class: 'muted', text: 'Pas de mission d’actualité chargée. Elle arrivera à la prochaine connexion.' }));
@@ -445,9 +453,13 @@ export class Menus {
 
   showStorageNotice(onOk: () => void): void {
     const body = h('div', { class: 'body' },
+      h('span', { class: 'label', text: 'Un jeu de fiction' }),
+      h('p', { style: { margin: '0' }, text: FICTION_NOTICE }),
+      h('p', { class: 'muted', style: { margin: '0' }, text: FICTION_WEEKLY }),
+      h('span', { class: 'label', text: 'Ta sauvegarde' }),
       h('p', { style: { margin: '0' }, text: 'Ta progression est enregistrée automatiquement dans ce navigateur. Elle ne quitte pas cet appareil.' }),
       h('p', { class: 'muted', style: { margin: '0' }, text: 'Si tu effaces les données de navigation, la partie est perdue. Tu peux l’exporter à tout moment depuis Pause → Sauvegarde.' }),
       h('div', { class: 'row' }, h('button', { class: 'btn primary', text: 'Compris', 'data-autofocus': '1', onclick: () => { this.click(); this.close(); onOk(); } })));
-    this.mount('notice', this.window('Sauvegarde locale', body, { narrow: true, onClose: () => { this.close(); onOk(); } }));
+    this.mount('notice', this.window('Avant de jouer', body, { narrow: true, onClose: () => { this.close(); onOk(); } }));
   }
 }
