@@ -36,4 +36,8 @@ export interface App {
   net: NetSystem;
   goOnline(target: NetTarget): void;
   goOffline(): void;
+  /** Code de groupe reçu par un lien d'invitation (?groupe=CODE), en attente d'entrée en jeu. */
+  pendingInvite: string | null;
+  /** Image de la scène actuelle (pour les cartes de partage). */
+  snapshot(): Promise<HTMLImageElement | null>;
 }

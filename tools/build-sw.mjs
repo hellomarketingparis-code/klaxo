@@ -12,7 +12,8 @@ const files = [];
     else files.push(path.relative(dist, p).split(path.sep).join('/'));
   }
 })(dist);
-const shell = files.filter((f) => f !== 'sw.js' && !f.startsWith('data/')).sort();
+// Les images d'aperçu des réseaux sociaux ne servent pas au jeu : pas de mise en cache hors ligne.
+const shell = files.filter((f) => f !== 'sw.js' && !f.startsWith('data/') && !/^og\.(png|jpe?g)$/.test(f)).sort();
 const data = files.filter((f) => f.startsWith('data/')).sort();
 const hash = crypto.createHash('sha1');
 for (const f of shell) hash.update(f).update(fs.readFileSync(path.join(dist, f)));

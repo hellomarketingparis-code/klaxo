@@ -283,6 +283,18 @@ await test('15. quitter puis retrouver sa progression (IndexedDB)', async () => 
   return `niveau ${s.level}, ${s.money} ¤, position et tenue retrouvés`;
 });
 
+await test('   carte de victoire : image à partager après une mission', async () => {
+  await page.evaluate(() => { const w = window.__klaxo.world; w.bus.emit('missionEnd', { id: 'story-04-zombies', ok: true }); w.bus.emit('card', { title: 'Mission réussie', subtitle: 'Zombies à l’heure de pointe · +1500 ¤', kind: 'success' }); });
+  await page.waitForSelector('#card .share:not([disabled])', { timeout: 8000 });
+  const [dl] = await Promise.all([page.waitForEvent('download', { timeout: 8000 }), page.click('#card .share')]);
+  const file = path.join(shots, '16-carte-victoire.png');
+  await dl.saveAs(file);
+  const buf = fs.readFileSync(file);
+  const w = buf.readUInt32BE(16), h = buf.readUInt32BE(20);
+  assert(buf.slice(1, 4).toString() === 'PNG' && w === 1080 && h === 1350, `image inattendue (${w}×${h})`);
+  return `${w}×${h}, ${(buf.length / 1024).toFixed(0)} ko`;
+});
+
 await test('   export puis import d’une sauvegarde', async () => {
   const text = await page.evaluate(() => window.__klaxo.save.exportText(window.__klaxo.world.serialize()));
   assert(text.includes('"game": "klaxo"'), 'export invalide');
@@ -558,6 +570,45 @@ await test('   aucune discussion possible entre joueurs', async () => {
   assert(fields === 0, 'un champ de saisie est présent en jeu');
   const tags = await A.evaluate(() => [...document.querySelectorAll('.nametag')].map((e) => e.textContent));
   assert(tags.every((t) => /^(◆ )?[\p{L} ]+ \d{2}( ★+)?( ♪)?$/u.test(t)), `étiquette inattendue : ${tags.join(' | ')}`);
+});
+
+await test('   lien d’invitation : un ami arrive directement dans le groupe', async () => {
+  await netCtx.grantPermissions(['clipboard-read', 'clipboard-write'], { origin: url.replace(/\/$/, '') });
+  await A.keyboard.press('Escape');
+  await A.waitForSelector('.tabs');
+  await A.click('.tabs >> text=En ligne');
+  await A.click('text=Inviter des amis');
+  await waitState(A, () => window.__klaxo.net.target && window.__klaxo.net.target.kind === 'group' && window.__klaxo.net.status === 'online', 8000);
+  const link = await A.evaluate(() => navigator.clipboard.readText());
+  const code = (link.match(/[?&]groupe=([A-Z0-9]+)/) ?? [])[1];
+  assert(code && link.includes('hellomarketingparis-code.github.io/klaxo/'), `lien inattendu : ${link}`);
+  await A.screenshot({ path: path.join(shots, '33-inviter.png') });
+  await A.click('text=Reprendre');
+  // Un ami ouvre le lien (ici sur le serveur de test, avec le transport local).
+  const NC = await openNet();
+  const C = NC.pg;
+  await C.goto(url + '?net=local&groupe=' + code);
+  await C.waitForFunction(() => window.__klaxo && window.__klaxo.scene, null, { timeout: 45000 });
+  await C.waitForSelector('.invite-card');
+  // Même navigateur que l'hôte (le transport local ne traverse pas les profils) : on simule un ami qui n'a pas encore choisi.
+  await C.evaluate(() => { window.__klaxo.settings.online = 'ask'; });
+  await C.click('.menu-buttons .btn.primary');
+  if (await C.isVisible('text=C’est parti')) await C.click('text=C’est parti');
+  await C.waitForSelector('text=Tu as été invité dans le groupe');
+  await C.click('text=Jouer en ligne');
+  await waitState(C, (c) => window.__klaxo.net.placeLabel === 'Groupe ' + c && window.__klaxo.net.count === 1, 15000, code);
+  assert(!(await C.evaluate(() => location.search.includes('groupe='))), 'le code est resté dans l’adresse');
+  await C.close();
+  return `groupe ${code}`;
+});
+
+await test('   bouton « Partager le jeu » de l’accueil', async () => {
+  const D = (await openNet()).pg;
+  await D.click('text=Partager le jeu');
+  await D.waitForSelector('text=Lien copié');
+  const txt = await D.evaluate(() => navigator.clipboard.readText());
+  assert(txt.includes('https://hellomarketingparis-code.github.io/klaxo/'), `texte copié inattendu : ${txt}`);
+  await D.close();
 });
 
 await test('   repasser hors ligne : l’autre joueur voit le départ', async () => {

@@ -25,6 +25,7 @@ import type { NetTarget } from './net/NetSystem';
 import { localTransport } from './net/transport';
 import { trysteroTransport } from './net/trystero';
 import { normalizeGroupCode } from './net/protocol';
+import { drawLogo, makeVictoryCard } from './ui/share';
 // Les missions de l'histoire sont aussi embarquées dans le code : le jeu démarre même si le fichier est injoignable.
 import storyBundled from '../public/data/missions/story.json';
 
@@ -78,6 +79,7 @@ class Game implements App {
   playing = false;
   ui!: UI;
   net!: NetSystem;
+  pendingInvite: string | null = null;
   phaser!: Phaser.Game;
   quality: Quality = 'high';
   private fpsLow = 0;
@@ -100,6 +102,9 @@ class Game implements App {
     const p2pOk = !import.meta.env.VITE_SINGLE_FILE && typeof RTCPeerConnection !== 'undefined';
     this.net = new NetSystem(this.world, netMode === 'local' ? () => localTransport() : p2pOk ? () => trysteroTransport() : null);
     this.world.bus.on('playerHorn', () => this.net.horn());
+    // Lien d'invitation : ?groupe=CODE. Le joueur rejoindra ce groupe en entrant en jeu (après son accord).
+    const invite = normalizeGroupCode(new URLSearchParams(location.search).get('groupe') ?? '');
+    if (invite && this.net.status !== 'unavailable') this.pendingInvite = invite;
     msg('Lecture des nouvelles de la semaine…');
     await this.loadData();
     msg('Allumage des néons…');
@@ -218,6 +223,19 @@ class Game implements App {
     this.ui.showGame();
     const online = () => {
       if (this.net.status === 'unavailable') { this.intro(); return; }
+      const invite = this.pendingInvite;
+      if (invite) {
+        this.pendingInvite = null;
+        try { const u = new URL(location.href); u.searchParams.delete('groupe'); history.replaceState(null, '', u.toString()); } catch { /* adresse inchangée */ }
+        const join = () => { this.goOnline({ kind: 'group', code: invite }); this.intro(); };
+        if (this.settings.online === 'on') { join(); return; }
+        this.world.paused = true;
+        this.ui.menus.showOnlineConsent((on) => {
+          this.world.paused = false;
+          if (on) join(); else { this.settings.online = 'off'; void this.save.saveSettings(this.settings); this.intro(); }
+        }, invite);
+        return;
+      }
       if (this.settings.online === 'ask') {
         this.world.paused = true;
         this.ui.menus.showOnlineConsent((on) => {
@@ -248,6 +266,19 @@ class Game implements App {
     this.settings.netGroup = target.kind === 'group' ? target.code : '';
     void this.save.saveSettings(this.settings);
     if (this.playing) void this.net.connect(target);
+  }
+  snapshot(): Promise<HTMLImageElement | null> {
+    return new Promise((resolve) => {
+      const done = (img: HTMLImageElement | null) => resolve(img);
+      try {
+        this.phaser.renderer.snapshot((s) => {
+          const img = s as HTMLImageElement;
+          if (!img || !(img instanceof HTMLImageElement)) return done(null);
+          if (img.complete && img.naturalWidth) done(img); else { img.onload = () => done(img); img.onerror = () => done(null); }
+        });
+      } catch { done(null); }
+      setTimeout(() => done(null), 1500);
+    });
   }
   goOffline(): void {
     this.settings.online = 'off';
@@ -324,6 +355,9 @@ class Game implements App {
       }
     }
   }
+
+  /** Dessins réutilisés par les outils (image d'aperçu, bande-annonce). */
+  art = { drawLogo, makeVictoryCard };
 
   /** Outils de test et de mise au point (console : __klaxo.debug). N'influence pas le jeu tant qu'on ne les appelle pas. */
   debug = {

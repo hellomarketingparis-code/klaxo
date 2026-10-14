@@ -10,6 +10,8 @@ import { Menus } from './menus';
 import { TouchControls } from './touch';
 import { h, clear } from './dom';
 import { autoName } from '../net/protocol';
+import { makeVictoryCard, shareImage, SITE_URL } from './share';
+import type { VictoryInfo } from './share';
 
 interface Bubble { el: HTMLElement; id: number; x: number; y: number; until: number; }
 
@@ -24,6 +26,7 @@ export class UI {
   private tags = new Map<string, HTMLElement>();
   private inviteEl: HTMLElement | null = null;
   private knownPeers = new Set<string>();
+  private lastWin: string | null = null;
   private toastsEl!: HTMLElement;
   private overlay = h('div', { id: 'overlay' });
   private banner = h('div', { id: 'banner' });
@@ -54,6 +57,7 @@ export class UI {
     bus.on('district', (e) => { if (app.playing) this.showBanner(DISTRICT_NAMES[e.id]); });
     bus.on('shop', (e) => this.openShop(e.poi));
     bus.on('net', (e) => this.onNet(e.what));
+    bus.on('missionEnd', (e) => { this.lastWin = e.ok ? e.id : null; });
     window.addEventListener('keydown', (e) => {
       if (!this.inviteEl || this.modal || e.repeat) return;
       if (e.code === 'KeyJ') { e.preventDefault(); this.app.net.acceptInvite(); }
@@ -170,9 +174,31 @@ export class UI {
     if (kind === 'fail' && this.app.world.missions.lastFailed) {
       el.append(h('button', { class: 'btn small', text: this.app.touchMode ? 'Réessayer' : 'Réessayer (R)', onclick: () => { if (this.app.world.missions.retry()) this.hideCard(); } }));
       this.cardT = 7;
-    } else this.cardT = kind === 'start' ? 2.6 : 3.4;
+    } else if (kind === 'success') { this.addShare(el, subtitle); this.cardT = 9; }
+    else this.cardT = kind === 'start' ? 2.6 : 3.4;
     this.hud.root.append(el);
     this.cardEl = el;
+  }
+  /** Bouton « Partager » sur la carte de réussite : l'image est préparée tout de suite, pour que le partage parte au premier toucher. */
+  private addShare(el: HTMLElement, subtitle: string): void {
+    const app = this.app, w = app.world, ms = w.missions;
+    const def = this.lastWin ? ms.find(this.lastWin) : null;
+    const info: VictoryInfo = {
+      title: def?.title ?? subtitle.replace(/\s·.*$/, ''), text: def?.punchline?.text ?? def?.summary ?? 'Encore une affaire réglée dans les rues de Klaxo.',
+      kind: def?.kind ?? 'side', look: w.player.look, name: w.player.name, level: w.economy.level, money: w.economy.money, missions: Object.keys(ms.done).length,
+      tag: def?.id === 'story-04-zombies' ? 'SURVIVANT DES ZOMBIES' : def?.kind === 'weekly' ? 'MISSION DE LA SEMAINE' : 'MISSION RÉUSSIE',
+    };
+    const btn = h('button', { class: 'btn small share', text: 'Partager', disabled: true });
+    let blob: Blob | null = null;
+    void app.snapshot().then((img) => makeVictoryCard(info, img)).then((b) => { blob = b; btn.disabled = !b; }).catch(() => {});
+    btn.onclick = async () => {
+      if (!blob) return;
+      this.cardT = Math.max(this.cardT, 4);
+      const r = await shareImage(blob, 'klaxo-mission.png', `J’ai réussi « ${info.title} » dans KLAXO. À ton tour :`, SITE_URL, app.canDownload);
+      if (r === 'downloaded') this.toast('Image enregistrée : publie-la où tu veux.', 'good', 3);
+      else if (r === 'copied') this.toast('Lien du jeu copié.', 'good', 3);
+    };
+    el.append(btn);
   }
   private hideCard(): void { this.cardEl?.remove(); this.cardEl = null; }
   showBanner(text: string): void { this.banner.textContent = text; this.banner.classList.add('on'); this.bannerT = 2.2; }

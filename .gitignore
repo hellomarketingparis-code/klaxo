@@ -5,3 +5,6 @@ e2e/captures/
 tools/weekly/logs/
 *.log
 .DS_Store
+
+# Visuels générés par tools/make-og.mjs et tools/make-trailer.mjs (lourds, non versionnés)
+marketing/

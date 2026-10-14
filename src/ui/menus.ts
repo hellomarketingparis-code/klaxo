@@ -20,6 +20,7 @@ function hostDownloads(): { use: (name: string) => Promise<any> } | null {
 }
 import { h, clear, css, fmtDate, fmtDuration } from './dom';
 import { makeGroupCode, normalizeGroupCode } from '../net/protocol';
+import { drawLogo, inviteUrl, shareLink, SITE_URL } from './share';
 
 type Tab = 'map' | 'missions' | 'online' | 'stats' | 'options' | 'save' | 'help';
 
@@ -79,24 +80,9 @@ export class Menus {
   showMain(): void {
     const app = this.app;
     const logo = h('canvas', { id: 'logo', role: 'img', 'aria-label': 'KLAXO' });
-    // Lettrage du logo : cinq lettres dessinées à la main sur une grille 5×7.
-    const glyphs: Record<string, string[]> = {
-      K: ['10001', '10010', '10100', '11000', '10100', '10010', '10001'],
-      L: ['10000', '10000', '10000', '10000', '10000', '10000', '11111'],
-      A: ['01110', '10001', '10001', '11111', '10001', '10001', '10001'],
-      X: ['10001', '10001', '01010', '00100', '01010', '10001', '10001'],
-      O: ['01110', '10001', '10001', '10001', '10001', '10001', '01110'],
-    };
     const S = 8;
     logo.width = 5 * 6 * S - S + 8; logo.height = 7 * S + 8;
-    const lc = logo.getContext('2d')!;
-    const word = (ox: number, oy: number, color: string) => {
-      lc.fillStyle = color;
-      [...'KLAXO'].forEach((ch, i) => glyphs[ch].forEach((row, r) => [...row].forEach((b, c) => { if (b === '1') lc.fillRect(ox + (i * 6 + c) * S, oy + r * S, S, S); })));
-    };
-    word(6, 6, '#4a1230'); word(2, 2, '#ff2e88');
-    lc.fillStyle = '#ffc2dd';
-    [...'KLAXO'].forEach((ch, i) => glyphs[ch].forEach((row, r) => [...row].forEach((b, c) => { if (b === '1' && (r === 0 || glyphs[ch][r - 1][c] === '0')) lc.fillRect(2 + (i * 6 + c) * S, 2 + r * S, S, 2); })));
+    drawLogo(logo.getContext('2d')!, 2, 2, S);
     const buttons = h('div', { class: 'menu-buttons' });
     if (app.saveInfo) {
       buttons.append(h('button', { class: 'btn primary', text: 'Continuer', 'data-autofocus': '1', onclick: () => { this.click(); app.continueGame(); } }));
@@ -104,7 +90,19 @@ export class Menus {
     } else buttons.append(h('button', { class: 'btn primary', text: 'Jouer', 'data-autofocus': '1', onclick: () => { this.click(); this.showCreator(); } }));
     buttons.append(h('button', { class: 'btn', text: 'Options', onclick: () => { this.click(); this.showPause('options', () => this.showMain()); } }));
     buttons.append(h('button', { class: 'btn', text: 'Commandes', onclick: () => { this.click(); this.showPause('help', () => this.showMain()); } }));
+    const shareMsg = h('span', { class: 'muted share-msg', role: 'status' });
+    buttons.append(h('button', { class: 'btn share', text: 'Partager le jeu', onclick: async () => {
+      this.click();
+      const r = await shareLink('KLAXO : une ville néon, des courses-poursuites, des zombies et une mission inspirée de l’actualité chaque semaine. Gratuit, dans le navigateur, seul ou entre amis.', SITE_URL);
+      shareMsg.textContent = r === 'copied' ? 'Lien copié : colle-le où tu veux.' : r === 'failed' ? SITE_URL : '';
+    } }), shareMsg);
     const side = h('div', { class: 'menu-side' });
+    if (app.pendingInvite) {
+      side.append(h('div', { class: 'weekly-card invite-card' },
+        h('span', { class: 'tag ok', text: 'Invitation' }),
+        h('h3', { text: `Tes amis t’attendent dans le groupe ${app.pendingInvite}` }),
+        h('p', { text: 'Clique sur « Jouer » (ou « Continuer ») : tu les rejoindras directement en ligne.' })));
+    }
     const wk = app.weekly.mission;
     if (wk) {
       side.append(h('div', { class: 'weekly-card' },
@@ -224,6 +222,17 @@ export class Menus {
       st === 'error' ? h('p', { class: 'muted', style: { margin: '0' }, text: net.error }) : null,
       h('p', { class: 'muted', style: { margin: '0' }, text: 'Les noms sont attribués au hasard. Il n’y a aucune discussion entre joueurs : on se croise, on klaxonne, on fait les missions ensemble.' }));
     body.append(head);
+    const inviteMsg = h('span', { class: 'muted', role: 'status' });
+    body.append(h('div', { class: 'row' },
+        h('button', { class: 'btn small primary', text: 'Inviter des amis', onclick: async () => {
+          this.click();
+          let c = net.target?.kind === 'group' ? net.target.code : '';
+          if (!c) { c = makeGroupCode(); app.goOnline({ kind: 'group', code: c }); }
+          const url = inviteUrl(c);
+          const r = await shareLink(`Rejoins-moi dans KLAXO, on fait les missions ensemble (groupe ${c}) :`, url);
+          inviteMsg.textContent = r === 'copied' ? 'Lien d’invitation copié. Envoie-le à tes amis.' : r === 'shared' ? 'Invitation envoyée.' : r === 'failed' ? url : '';
+          rerender();
+        } }), inviteMsg));
     if (st === 'online' && net.count) {
       const list = h('div', { class: 'list' });
       for (const p of net.peers.values()) {
@@ -250,12 +259,14 @@ export class Menus {
       h('div', { class: 'row' }, code,
         h('button', { class: 'btn small', text: 'Rejoindre ce groupe', onclick: () => { const c = normalizeGroupCode(code.value); if (!c) { msg.textContent = 'Le code fait 4 à 8 lettres ou chiffres.'; return; } go({ kind: 'group', code: c }); } }), msg),
       net.target?.kind === 'group' ? h('p', { style: { margin: '0' } }, 'Code de ton groupe : ', h('b', { class: 'code', text: net.target.code }), '. Partage-le en dehors du jeu.') : '',
+
       h('p', { class: 'muted', style: { margin: '0' }, text: 'En ligne, ton appareil se connecte directement à ceux des autres joueurs de ta ville, comme pour un appel vidéo : ils peuvent voir ton adresse internet. Une ville accueille 8 joueurs ; quand elle est pleine, le jeu t’envoie dans la suivante. Certains réseaux (entreprise, école) bloquent ces connexions.' }));
   }
   /** Premier lancement : jouer en ligne ou seul. */
-  showOnlineConsent(onDone: (online: boolean) => void): void {
+  showOnlineConsent(onDone: (online: boolean) => void, invite: string | null = null): void {
     const pick = (on: boolean) => { this.click(); this.close(); onDone(on); };
     const body = h('div', { class: 'body' },
+      invite ? h('p', { style: { margin: '0' } }, 'Tu as été invité dans le groupe ', h('b', { class: 'code', text: invite }), '.') : '',
       h('p', { style: { margin: '0' }, text: 'En ligne, tu croises les autres joueurs dans la ville et tu peux faire les missions avec eux. C’est gratuit.' }),
       h('p', { class: 'muted', style: { margin: '0' }, text: 'Il n’y a aucune discussion : les noms sont attribués au hasard et rien de ce que tu écris n’est partagé.' }),
       h('p', { class: 'muted', style: { margin: '0' }, text: 'Ton appareil se connecte directement à ceux des autres joueurs, comme pour un appel vidéo : ils peuvent voir ton adresse internet. Tu peux changer d’avis à tout moment dans Pause → En ligne.' }),
