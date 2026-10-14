@@ -57,19 +57,29 @@ Toutes acceptent `objective` (obligatoire), `timeLimit` en secondes, `failIf` (`
 | `get_vehicle` | `vehicle` (facultatif) | le joueur est au volant |
 | `deliver` | `target`, `radius`, `mode`, `item`, `fragile: { max }` | le joueur s'arrête au lieu. `fragile` compte les chocs. |
 | `tail` | `vehicle`, `color`, `route`, `speed`, `min`, `max`, `objectiveFollow` | la cible arrive au bout de son trajet, joueur à bonne distance |
-| `observe` | `target`, `radius`, `seconds` | le joueur reste sur place le temps demandé |
+| `observe` | `target`, `radius`, `seconds`, `mode`, `label` (nom de la jauge) | le joueur reste sur place le temps demandé |
 | `leave` | `target`, `radius` | le joueur s'est éloigné |
 | `lose_wanted` | aucun | le niveau de recherche est retombé à zéro |
-| `collect` | `targets`, `item`, `radius` | tous les objets sont ramassés, dans n'importe quel ordre |
+| `collect` | `targets`, `item`, `radius`, `mode` | tous les objets sont ramassés, dans n'importe quel ordre |
 | `checkpoints` | `targets`, `radius`, `mode` | tous les points sont franchis dans l'ordre |
 | `passengers` | `fares: [{ name, from, to, line, profile }]` | tous les passagers sont déposés |
 | `wait` | `seconds` | le temps est écoulé |
 
 `mode` vaut `any`, `foot` ou `vehicle`.
 
-### Les onze actions
+### Les treize actions
 
-Utilisables dans `setup`, `onStart`, `onComplete` et `events` : `toast`, `say` (message d'un personnage), `dialog`, `reveal` (carton de révélation), `spawn_npc`, `spawn_vehicle`, `spawn_guards` (rondes définies par la carte), `despawn`, `wanted`, `sfx`, `world` (effet temporaire : `traffic`, `pedestrians`, `lights_blink`, `robots`).
+Utilisables dans `setup`, `onStart`, `onComplete` et `events` : `toast`, `say` (message d'un personnage), `dialog`, `reveal` (carton de révélation), `spawn_npc`, `spawn_vehicle`, `spawn_guards` (rondes définies par la carte), `despawn`, `wanted`, `sfx`, `world` (effet temporaire : `traffic`, `pedestrians`, `lights_blink`, `robots`), `zombies` et `cure_zombies`.
+
+### Les zombies
+
+- `{ "do": "zombies", "at": lieu, "count": 1 à 10, "spread": 1 à 12, "aggro": 3 à 40 }` fait apparaître des zombies autour d'un lieu (`spread` : dispersion en tuiles, 5 par défaut). Ils déambulent, puis poursuivent le joueur à moins de `aggro` tuiles (9 par défaut). Au plus 30 zombies à la fois.
+- Ils mordent le joueur à pied. En voiture, il ne risque rien : un zombie renversé tombe puis se relève, sans attirer la police.
+- Un coup de klaxon (130 px) ou un cri à pied (72 px, touche d'action) les fait reculer deux à trois secondes.
+- `"bites": 1 à 9`, au niveau de la mission, fixe le nombre de morsures tolérées (3 par défaut). Au-delà, la mission échoue. La jauge « Morsures » s'affiche tant que des zombies sont présents.
+- `{ "do": "cure_zombies" }` les rend tous à leur vie d'habitants ordinaires.
+
+Exemple complet : la mission `story-04-zombies` de `story.json`.
 
 ### Ce que la validation refuse
 

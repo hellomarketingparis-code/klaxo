@@ -140,6 +140,9 @@ export class AudioSystem {
       case 'robot': this.seq([[880, 0, 0.05], [440, 0.06, 0.05], [1320, 0.12, 0.08]], 'square', 0.06); break;
       case 'ui': this.tone(880, t, 0.04, 'triangle', 0.1, out); break;
       case 'foot': this.burst(t, 0.03, 0.05 * vol, 700, 1, out, 'bandpass'); break;
+      case 'groan': this.tone(110, t, 0.7, 'sawtooth', 0.06 * vol, out, 70, pan); this.tone(147, t + 0.05, 0.6, 'triangle', 0.05 * vol, out, 98, pan); break;
+      case 'bite': this.burst(t, 0.06, 0.35 * vol, 1800, 1.5, out, 'bandpass'); this.tone(220, t, 0.18, 'square', 0.08 * vol, out, 110, pan); break;
+      case 'cure': this.seq([[523, 0, 0.1], [784, 0.08, 0.1], [1047, 0.16, 0.1], [1568, 0.26, 0.5]], 'triangle', 0.15); this.burst(t, 0.4, 0.12, 4000, 0.7, out); break;
       default: break;
     }
   }

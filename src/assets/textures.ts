@@ -122,8 +122,14 @@ export function drawPedFrame(ctx: Ctx, ox: number, oy: number, look: Look, frame
     return;
   }
   p(top, 6, 3, 4, 10); p(top, 5, 4, 6, 8); p(topLo, 5, 4, 1, 8); p(topHi, 9, 4, 1, 3);
-  const ha = walking ? -Math.sign(f) * 2 : 0;
-  p(skin, 8 + ha, 2, 2, 2); p(skin, 8 - ha, 12, 2, 2);
+  if (look.zombie) {
+    // Bras tendus vers l'avant, manches déchirées.
+    p(top, 9, 3, 3, 2); p(top, 9, 11, 3, 2); p(skin, 12, 3, 3, 2); p(skin, 12, 11, 3, 2);
+    p(topLo, 6, 6, 1, 2); p(topLo, 8, 10, 2, 1); p(shade(look.skin, 0.7), 14, 4, 1, 1); p(shade(look.skin, 0.7), 14, 11, 1, 1);
+  } else {
+    const ha = walking ? -Math.sign(f) * 2 : 0;
+    p(skin, 8 + ha, 2, 2, 2); p(skin, 8 - ha, 12, 2, 2);
+  }
   // Tête.
   p(skin, 7, 5, 4, 6); p(skin, 6, 6, 6, 4);
   switch (look.hairStyle) {
@@ -222,6 +228,7 @@ export function drawBust(ctx: Ctx, look: Look, ox = 0, oy = 0): void {
   // Visage.
   p(skin, 5, 3, 6, 7); p(skin, 4, 4, 8, 5);
   p('#1a1420', 6, 6, 1, 1); p('#1a1420', 9, 6, 1, 1); p(skinLo, 7, 8, 2, 1); p(skinLo, 4, 6, 1, 1); p(skinLo, 11, 6, 1, 1);
+  if (look.zombie) { p(skinLo, 5, 5, 2, 1); p(skinLo, 9, 5, 2, 1); p('#e8f5a0', 6, 6, 1, 1); p('#e8f5a0', 9, 6, 1, 1); p('#3a2a2a', 6, 8, 4, 1); }
   switch (look.hairStyle) {
     case 1: p(hair, 4, 2, 8, 2); p(hair, 3, 3, 2, 8); p(hair, 11, 3, 2, 8); p(hair, 5, 4, 1, 1); p(hair, 10, 4, 1, 1); break;
     case 2: p(shade(look.skin, 1.15), 6, 3, 2, 1); break;

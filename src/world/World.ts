@@ -9,7 +9,7 @@ import { VEHICLES } from '../vehicles/specs';
 import type { VehicleType } from '../vehicles/specs';
 import type { Ped } from '../npc/Ped';
 import { PedSystem } from '../npc/PedSystem';
-import { ANGRY_LINES, DOWN_LINES } from '../npc/chatter';
+import { ANGRY_LINES, DOWN_LINES, ZOMBIE_HIT_LINES } from '../npc/chatter';
 import type { Look } from '../npc/looks';
 import { Player, NO_INTENT } from '../player/Player';
 import type { Intent } from '../player/Player';
@@ -66,6 +66,8 @@ export class World {
   headless: boolean;
   playerImpact = 0;
   playerHonked = false;
+  /** Le joueur à pied vient de crier (touche d'action) : fait reculer les zombies proches. */
+  playerShouted = false;
   prompt: Prompt | null = null;
   secretsFound = new Set<number>();
   district = -1;
@@ -128,7 +130,7 @@ export class World {
 
   private step(dt: number, input: Intent): void {
     this.time += dt;
-    this.playerImpact = 0; this.playerHonked = false;
+    this.playerImpact = 0; this.playerHonked = false; this.playerShouted = false;
     if (this.bustCd > 0) this.bustCd -= dt;
     if (this.hornCd > 0) this.hornCd -= dt;
     this.mods.update(this.time);
@@ -199,7 +201,8 @@ export class World {
     if (input.interact) this.handleInteract();
     if (input.action && p.state === 'foot' && this.hornCd <= 0) {
       this.hornCd = 1.2;
-      this.bus.emit('bubble', { id: p.id, x: p.x, y: p.y, text: 'Hé !', ttl: 1 });
+      this.playerShouted = true;
+      this.bus.emit('bubble', { id: p.id, x: p.x, y: p.y, text: this.missions.active?.zombies.length ? 'Ouste !' : 'Hé !', ttl: 1 });
       this.bus.emit('sfx', { name: 'whistle', x: p.x, y: p.y });
       this.pedSys.react('honk', p.x, p.y, 60);
     }
@@ -419,9 +422,12 @@ export class World {
           if (closing > 46 && q.state !== 'down') {
             this.pedSys.knock(q, v.vx * 0.7 + ux * 40, v.vy * 0.7 + uy * 40, v.x, v.y);
             this.bus.emit('sfx', { name: 'thud', x: q.x, y: q.y });
-            this.bus.emit('bubble', { id: q.id, x: q.x, y: q.y, text: this.rng.pick(DOWN_LINES), ttl: 1.8 });
+            const zombie = q.role === 'zombie';
+            this.bus.emit('bubble', { id: q.id, x: q.x, y: q.y, text: this.rng.pick(zombie ? ZOMBIE_HIT_LINES : DOWN_LINES), ttl: 1.8 });
             this.pedSys.react('danger', q.x, q.y, 110);
-            if (v === pv) { this.wanted.crime(q.profile === 'cop' || q.role === 'cop' ? 'copHit' : 'pedHit', q.x, q.y); this.economy.stat('pedsHit', 1); }
+            // Renverser un zombie ne regarde pas la police : il se relève, de mauvaise humeur.
+            if (v === pv && zombie) this.economy.stat('zombiesBowled', 1);
+            else if (v === pv) { this.wanted.crime(q.profile === 'cop' || q.role === 'cop' ? 'copHit' : 'pedHit', q.x, q.y); this.economy.stat('pedsHit', 1); }
             v.vx *= 0.92; v.vy *= 0.92;
           } else if (closing > 12 && q.role === 'civil' && q.state !== 'flee' && q.state !== 'down') {
             q.fleeX = v.x; q.fleeY = v.y; q.state = 'flee'; q.timer = 1.6;

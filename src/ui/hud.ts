@@ -189,6 +189,7 @@ export class Hud {
     const side = w.missions.sideMarker;
     if (side) dot(side.x, side.y, '#ffd84a', u + 1, true);
     const r = w.missions.active;
+    if (r) for (const z of r.zombies) dot(z.x, z.y, '#8fdc5a', Math.max(1, u - 1));
     if (r) for (const mk of r.markers) dot(mk.x, mk.y, mk.kind === 'checkpoint' ? '#22e0ff' : '#ff2e88', mk.dim ? u : u + 1, !mk.dim);
     // Autres joueurs en ligne ; les coéquipiers restent visibles au bord de la carte.
     const sid = this.app.net.session?.sid;

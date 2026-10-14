@@ -638,6 +638,19 @@
                 "type": "number",
                 "minimum": 1,
                 "maximum": 60
+              },
+              "mode": {
+                "enum": [
+                  "any",
+                  "foot",
+                  "vehicle"
+                ]
+              },
+              "label": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 30,
+                "pattern": "^[^<>]*$"
               }
             },
             "required": [
@@ -858,6 +871,13 @@
                 "type": "number",
                 "minimum": 1,
                 "maximum": 30
+              },
+              "mode": {
+                "enum": [
+                  "any",
+                  "foot",
+                  "vehicle"
+                ]
               }
             },
             "required": [
@@ -1185,6 +1205,11 @@
         "money",
         "xp"
       ]
+    },
+    "bites": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 9
     },
     "requires": {
       "type": "object",
@@ -1606,7 +1631,9 @@
                   "success",
                   "fail",
                   "phone",
-                  "robot"
+                  "robot",
+                  "groan",
+                  "cure"
                 ]
               }
             },
@@ -1646,6 +1673,50 @@
               "set",
               "value",
               "seconds"
+            ]
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "do": {
+                "const": "zombies"
+              },
+              "at": {
+                "$ref": "#/$defs/loc"
+              },
+              "count": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 10
+              },
+              "spread": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 12
+              },
+              "aggro": {
+                "type": "integer",
+                "minimum": 3,
+                "maximum": 40
+              }
+            },
+            "required": [
+              "do",
+              "at",
+              "count"
+            ]
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "do": {
+                "const": "cure_zombies"
+              }
+            },
+            "required": [
+              "do"
             ]
           }
         ]

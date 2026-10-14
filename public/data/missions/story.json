@@ -139,6 +139,96 @@
       "punchline": { "title": "FLAMANT ROS", "text": "Mamie Néon rebranche l'enseigne : toute la rue vire au rose. Le « E » a grillé pendant le transport. Le bar s'appelle désormais « Le Flamant Ros ». Les habitués trouvent que ça fait plus chic." },
       "outro": [{ "who": "giver", "text": "Quarante ans que j'attendais ça. Ils peuvent revenir : cette fois, je l'ai vissée." }],
       "reward": { "money": 1200, "xp": 220 }
+    },
+    {
+      "schema": 1,
+      "id": "story-04-zombies",
+      "kind": "story",
+      "title": "Zombies à l'heure de pointe",
+      "summary": "Une boisson énergisante a changé les noctambules de Klaxo en zombies assoiffés de café. Ils mordent, mais ils ont horreur du klaxon.",
+      "giver": { "name": "Docteure Fiole", "profile": "employee", "at": { "poi": "mairie", "dx": 3, "dy": 2 } },
+      "intro": [
+        { "who": "giver", "text": "Enfin quelqu'un de réveillé ! Tu as goûté le Zomb'Up, la nouvelle boisson énergisante ?" },
+        { "who": "player", "text": "Non. Pourquoi ?" },
+        { "who": "giver", "text": "Tant mieux. Ceux qui en ont bu marchent les bras tendus en grognant « café… ». Ils mordent. Gentiment, mais ils mordent." },
+        { "who": "giver", "text": "Bonne nouvelle : ils détestent le bruit. Un coup de klaxon et ils reculent. À pied, crie un bon coup : ça marche aussi, de plus près." },
+        { "who": "giver", "text": "J'ai caché quatre caisses d'antidote en ville. Ramène-les-moi. Trois morsures maximum, sinon c'est toi qui réclameras du café." }
+      ],
+      "bites": 3,
+      "steps": [
+        {
+          "type": "get_vehicle",
+          "objective": "Trouve un véhicule",
+          "onStart": [
+            { "do": "zombies", "at": { "poi": "mairie", "dx": -6, "dy": 8 }, "count": 3, "spread": 4, "aggro": 7 },
+            { "do": "toast", "text": "Les zombies craignent le bruit : klaxonne en voiture, crie à pied (Espace ou bouton Klaxon)." }
+          ]
+        },
+        {
+          "type": "collect",
+          "objective": "Ramasse les caisses d'antidote, à pied",
+          "mode": "foot",
+          "targets": [{ "poi": "parc" }, { "poi": "gare", "dy": 2 }, { "poi": "musee", "dy": 2 }, { "poi": "marche" }],
+          "item": { "id": "antidote", "name": "Caisse d'antidote" },
+          "radius": 1.6,
+          "checkpoint": true,
+          "onStart": [
+            { "do": "zombies", "at": { "poi": "parc" }, "count": 3, "spread": 5, "aggro": 8 },
+            { "do": "zombies", "at": { "poi": "gare", "dy": 2 }, "count": 3, "spread": 5, "aggro": 8 },
+            { "do": "zombies", "at": { "poi": "musee", "dy": 2 }, "count": 3, "spread": 5, "aggro": 8 },
+            { "do": "zombies", "at": { "poi": "marche" }, "count": 4, "spread": 5, "aggro": 8 }
+          ],
+          "events": [{ "at": 45, "do": [{ "do": "say", "who": "Docteure Fiole", "text": "Astuce : gare-toi tout près des caisses. Les zombies sont lents, toi non." }] }]
+        },
+        {
+          "type": "deliver",
+          "objective": "Rapporte l'antidote à la mairie",
+          "target": { "poi": "mairie", "dx": 3, "dy": 2 },
+          "radius": 4,
+          "item": { "id": "antidote", "name": "Caisses d'antidote" },
+          "checkpoint": true,
+          "onStart": [{ "do": "zombies", "at": { "poi": "mairie", "dy": 9 }, "count": 4, "spread": 7, "aggro": 9 }]
+        },
+        {
+          "type": "observe",
+          "objective": "Défends la mairie à pied pendant que l'antidote infuse",
+          "label": "Infusion de l'antidote",
+          "mode": "foot",
+          "target": { "poi": "mairie", "dx": 3, "dy": 2 },
+          "radius": 5,
+          "seconds": 40,
+          "onStart": [
+            { "do": "say", "who": "Docteure Fiole", "text": "L'antidote infuse ! Reste près de moi, à pied, et crie dès qu'ils approchent." },
+            { "do": "zombies", "at": { "poi": "mairie", "dx": -11, "dy": 2 }, "count": 3, "spread": 3, "aggro": 30 },
+            { "do": "zombies", "at": { "poi": "mairie", "dx": 12, "dy": 3 }, "count": 3, "spread": 3, "aggro": 30 }
+          ],
+          "events": [
+            { "at": 13, "do": [{ "do": "zombies", "at": { "poi": "mairie", "dx": 2, "dy": 12 }, "count": 4, "spread": 3, "aggro": 30 }, { "do": "sfx", "name": "groan" }] },
+            {
+              "at": 26,
+              "do": [
+                { "do": "zombies", "at": { "poi": "mairie", "dx": -9, "dy": 10 }, "count": 3, "spread": 3, "aggro": 30 },
+                { "do": "zombies", "at": { "poi": "mairie", "dx": 11, "dy": -2 }, "count": 3, "spread": 3, "aggro": 30 },
+                { "do": "say", "who": "Docteure Fiole", "text": "Dernière vague ! Encore un petit effort !" }
+              ]
+            }
+          ],
+          "onComplete": [{ "do": "cure_zombies" }, { "do": "toast", "text": "Pschhh ! Un nuage d'antidote recouvre le quartier." }]
+        },
+        {
+          "type": "talk",
+          "objective": "Retourne voir la Docteure Fiole",
+          "npc": { "name": "Docteure Fiole", "profile": "employee", "at": { "poi": "mairie", "dx": 3, "dy": 2 } },
+          "lines": [
+            { "who": "npc", "text": "Ça marche ! Ils redeviennent normaux. Enfin, aussi normaux qu'avant." },
+            { "who": "player", "text": "C'était quoi, cet antidote ?" },
+            { "who": "npc", "text": "Formule ultra secrète. Viens, je te montre l'étiquette." }
+          ]
+        }
+      ],
+      "punchline": { "title": "Formule secrète", "text": "L'antidote, c'était du café, vaporisé sur tout le quartier. Les zombies sont redevenus des employés de bureau. La mairie précise qu'à l'œil nu, la différence reste mince." },
+      "outro": [{ "who": "giver", "text": "Merci ! Je garde quand même une canette de Zomb'Up pour lundi matin. Pour la science." }],
+      "reward": { "money": 1500, "xp": 320 }
     }
   ]
 }

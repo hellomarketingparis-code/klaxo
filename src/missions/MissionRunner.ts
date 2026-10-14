@@ -1,5 +1,9 @@
 import { TILE } from '../engine/config';
 import { angleDiff, clamp, dist } from '../engine/math';
+import { findPath } from '../map/pathfinding';
+import type { TilePt } from '../map/pathfinding';
+import { lookKey, randomLook, zombieLook } from '../npc/looks';
+import { ZOMBIE_BITE_LINES, ZOMBIE_CURED_LINES, ZOMBIE_LINES, ZOMBIE_STUN_LINES } from '../npc/chatter';
 import { Vehicle } from '../vehicles/Vehicle';
 import type { VehicleType } from '../vehicles/specs';
 import type { Ped } from '../npc/Ped';
@@ -12,6 +16,16 @@ export interface Marker { x: number; y: number; kind: 'target' | 'item' | 'npc' 
 export interface Meter { label: string; value: number; tone: 'warn' | 'good'; }
 export interface GuardState { kind: 'guard'; pts: { x: number; y: number }[]; idx: number; dir: number; loop: boolean; pause: number; detect: number; }
 export type RunnerState = 'idle' | 'running' | 'success' | 'failed';
+
+export interface ZombieState {
+  kind: 'zombie'; homeX: number; homeY: number; aggro: number; locked: boolean;
+  stun: number; fx: number; fy: number; groan: number; wander: number; wx: number; wy: number;
+  path: TilePt[] | null; pi: number; pathT: number;
+}
+/** Portée du klaxon et du cri sur les zombies (pixels). */
+export const HORN_SCARE = 130;
+export const SHOUT_SCARE = 72;
+const ZOMBIE_CAP = 30;
 
 export const GUARD_RANGE = 92;
 export const GUARD_FOV = 0.62;
@@ -28,6 +42,11 @@ export class MissionRunner {
   hint: string | null = null;
   objective = '';
   guards: Ped[] = [];
+  zombies: Ped[] = [];
+  /** Morsures reçues pendant la mission. */
+  bites = 0;
+  private biteCd = 0;
+  private pathBudget = 0;
   detected = false;
   failReason = '';
   checkpointStep = 0;
@@ -97,6 +116,8 @@ export class MissionRunner {
         case 'despawn': this.despawn(a.tag); break;
         case 'wanted': w.wanted.setLevel(a.level); break;
         case 'sfx': w.bus.emit('sfx', { name: a.name }); break;
+        case 'zombies': this.spawnZombies(a.at, a.count, a.spread ?? 5, a.aggro ?? 9); break;
+        case 'cure_zombies': this.cureZombies(); break;
         case 'world': {
           const until = w.time + a.seconds;
           if (a.set === 'traffic') w.mods.setTemp('trafficFactor', a.value, until);
@@ -156,6 +177,118 @@ export class MissionRunner {
     }
     if (max >= 1 && !this.detected) { this.detected = true; w.bus.emit('sfx', { name: 'alarm' }); }
     return max;
+  }
+
+  // ---------- Zombies ----------
+  get maxBites(): number { return this.def.bites ?? 3; }
+  private spawnZombies(at: Loc, count: number, spread: number, aggro: number): void {
+    const w = this.w, m = w.map, c = this.pos(at);
+    const p = w.player;
+    for (let k = 0; k < count && this.zombies.length < ZOMBIE_CAP; k++) {
+      let spot: { x: number; y: number } | null = null;
+      for (let t = 0; t < 14 && !spot; t++) {
+        const tx = Math.floor(c.x / TILE) + w.rng.int(-spread, spread), ty = Math.floor(c.y / TILE) + w.rng.int(-spread, spread);
+        if (!m.inb(tx, ty)) continue;
+        const q = m.nearestWalkable(tx, ty, 4);
+        if (!m.reach[m.idx(q.tx, q.ty)]) continue;
+        const x = (q.tx + 0.5) * TILE, y = (q.ty + 0.5) * TILE;
+        if (dist(x, y, p.px, p.py) < 70) continue; // jamais sous le nez du joueur
+        spot = { x, y };
+      }
+      if (!spot) continue;
+      const z = w.pedSys.spawn(spot.x, spot.y, 'passerby', zombieLook(w.rng));
+      z.role = 'zombie'; z.state = 'seek'; z.name = 'Zombie'; z.speed = w.rng.range(27, 37);
+      z.ai = { kind: 'zombie', homeX: spot.x, homeY: spot.y, aggro: aggro * TILE, locked: false, stun: 0, fx: 0, fy: 0, groan: w.rng.range(1, 6), wander: 0, wx: spot.x, wy: spot.y, path: null, pi: 0, pathT: 0 } as ZombieState;
+      this.tag('zombies', z);
+      this.zombies.push(z);
+    }
+  }
+  private cureZombies(): void {
+    const w = this.w;
+    for (const z of this.zombies) {
+      if (z.remove) continue;
+      z.look = randomLook('employee', w.rng); z.lookKey = lookKey(z.look);
+      z.role = 'civil'; z.state = 'idle'; z.timer = w.rng.range(2, 5); z.ai = null; z.tag = ''; z.name = ''; z.speed = w.rng.range(26, 34);
+      z.stop(); z.bubbleCd = 0;
+      if (w.inView(z.x, z.y, 0) && w.rng.chance(0.7)) w.pedSys.say(z, w.rng.pick(ZOMBIE_CURED_LINES), 2.6);
+      w.bus.emit('flash', { x: z.x, y: z.y });
+    }
+    this.tagged.delete('zombies');
+    this.zombies = [];
+    w.bus.emit('sfx', { name: 'cure' });
+  }
+  private updateZombies(dt: number): void {
+    const w = this.w, m = w.map, p = w.player;
+    this.zombies = this.zombies.filter((z) => !z.remove);
+    if (!this.zombies.length) return;
+    this.biteCd -= dt;
+    this.pathBudget = 2;
+    const px = p.px, py = p.py;
+    const scare = w.playerHonked ? HORN_SCARE : w.playerShouted ? SHOUT_SCARE : 0;
+    let groaned = false;
+    for (const z of this.zombies) {
+      const ai = z.ai as ZombieState;
+      if (z.state === 'down') {
+        // Renversé par une voiture : il glisse, puis se relève.
+        z.vx *= Math.exp(-6 * dt); z.vy *= Math.exp(-6 * dt);
+        z.integrate(dt, m); z.moving = false;
+        z.timer -= dt;
+        if (z.timer <= 0) { z.state = 'seek'; ai.stun = 0.8; ai.fx = z.x; ai.fy = z.y; }
+        continue;
+      }
+      const d = dist(z.x, z.y, px, py);
+      if (scare && d < scare) {
+        if (ai.stun <= 0.3 && w.rng.chance(0.4)) w.pedSys.say(z, w.rng.pick(ZOMBIE_STUN_LINES), 1.4);
+        ai.stun = w.rng.range(2, 2.8); ai.fx = px; ai.fy = py; ai.path = null;
+      }
+      if (ai.stun > 0) {
+        ai.stun -= dt;
+        // Recule en se bouchant les oreilles.
+        let ax = z.x - ai.fx, ay = z.y - ai.fy;
+        const n = Math.hypot(ax, ay) || 1; ax /= n; ay /= n;
+        const bx = z.x, by = z.y;
+        z.moveDir(ax, ay, 44, dt, m);
+        if (Math.hypot(z.x - bx, z.y - by) < 44 * dt * 0.4) z.moveDir(-ay, ax, 44, dt, m);
+        continue;
+      }
+      const chase = d < ai.aggro || (ai.locked && d < ai.aggro * 1.8);
+      ai.locked = chase;
+      if (chase) {
+        if (m.lineOfSight(z.x, z.y, px, py)) { ai.path = null; z.moveToward(px, py, z.speed, dt, m); }
+        else {
+          ai.pathT -= dt;
+          if ((!ai.path || ai.pathT <= 0) && this.pathBudget > 0) {
+            this.pathBudget--; ai.pathT = 1.4;
+            ai.path = findPath(m, z.tx, z.ty, Math.floor(px / TILE), Math.floor(py / TILE), { roadCost: 1, maxNodes: 1600 }); ai.pi = 1;
+          }
+          const node = ai.path?.[ai.pi];
+          if (node) { if (z.moveToward((node.tx + 0.5) * TILE, (node.ty + 0.5) * TILE, z.speed, dt, m) < 4) ai.pi++; }
+          else z.moveToward(px, py, z.speed, dt, m);
+        }
+      } else {
+        // Déambulation lente autour de son point d'apparition.
+        ai.wander -= dt;
+        if (ai.wander <= 0) { ai.wander = w.rng.range(2, 5); ai.wx = ai.homeX + w.rng.range(-40, 40); ai.wy = ai.homeY + w.rng.range(-40, 40); }
+        if (z.moveToward(ai.wx, ai.wy, z.speed * 0.45, dt, m) < 3) z.stop();
+      }
+      // Morsure : seulement à pied, une à la fois.
+      if (p.onFoot && !w.attract && d < 9 && this.biteCd <= 0) {
+        this.bites++;
+        this.biteCd = 1.5; ai.stun = 1.3; ai.fx = px; ai.fy = py;
+        const k = d || 1;
+        p.state = 'stunned'; p.timer = 0.45; p.vx = ((px - z.x) / k) * 80; p.vy = ((py - z.y) / k) * 80;
+        z.bubbleCd = 0; w.pedSys.say(z, w.rng.pick(ZOMBIE_BITE_LINES), 1.6);
+        w.bus.emit('sfx', { name: 'bite', x: px, y: py });
+        w.bus.emit('toast', { text: `Morsure ! (${this.bites}/${this.maxBites})`, kind: 'bad', ttl: 2 });
+        if (this.bites >= this.maxBites) { this.fail('Trop de morsures : tu rejoins le club du café'); return; }
+      }
+      // Grognements, avec modération.
+      ai.groan -= dt;
+      if (ai.groan <= 0) {
+        ai.groan = w.rng.range(4, 9);
+        if (!groaned && d < 220 && w.inView(z.x, z.y, 0)) { groaned = true; w.pedSys.say(z, w.rng.pick(ZOMBIE_LINES), 1.8); if (w.rng.chance(0.5)) w.bus.emit('sfx', { name: 'groan', x: z.x, y: z.y }); }
+      }
+    }
   }
 
   private begin(i: number): void {
@@ -233,6 +366,8 @@ export class MissionRunner {
     for (const tag of [...this.tagged.keys()]) this.despawn(tag);
     for (const g of this.guards) g.remove = true;
     this.guards = [];
+    for (const z of this.zombies) z.remove = true;
+    this.zombies = [];
     this.w.mods.clearTemp();
     this.w.player.carrying = null;
     this.markers = []; this.prompt = null; this.meter = null;
@@ -309,10 +444,11 @@ export class MissionRunner {
     if (s.events) s.events.forEach((e, i) => { if (!this.fired.has(i) && this.stepTime >= e.at) { this.fired.add(i); this.run(e.do); } });
     this.prompt = null; this.hint = null; this.markers = [];
     const alert = this.guards.length ? this.updateGuards(dt) : 0;
+    if (this.zombies.length) { this.updateZombies(dt); if (this.state !== 'running') return; }
     if (s.failIf?.includes('detected')) {
       this.meter = { label: 'Alerte', value: alert, tone: 'warn' };
       if (this.detected) return this.fail('Les vigiles t’ont repéré');
-    } else this.meter = null;
+    } else this.meter = this.zombies.length || this.bites ? { label: `Morsures ${this.bites}/${this.maxBites}`, value: this.bites / this.maxBites, tone: 'warn' } : null;
     if (s.failIf?.includes('wanted') && w.wanted.level > 0) return this.fail('La police s’en est mêlée');
     const px = p.px, py = p.py;
 
@@ -396,8 +532,10 @@ export class MissionRunner {
       case 'observe': {
         const r = (s.radius ?? 3) * TILE;
         this.markers.push({ x: st.p.x, y: st.p.y, kind: 'target', radius: r });
-        if (dist(px, py, st.p.x, st.p.y) < r) st.t += dt; else st.t = Math.max(0, st.t - dt * 0.5);
-        this.meter = { label: 'Observation', value: clamp(st.t / s.seconds, 0, 1), tone: 'good' };
+        const inside = dist(px, py, st.p.x, st.p.y) < r;
+        if (inside && this.modeOk(s.mode)) st.t += dt; else st.t = Math.max(0, st.t - dt * 0.5);
+        if (inside && !this.modeOk(s.mode)) this.hint = s.mode === 'foot' ? 'Descends du véhicule' : 'Il te faut un véhicule';
+        this.meter = { label: s.label ?? 'Observation', value: clamp(st.t / s.seconds, 0, 1), tone: 'good' };
         if (st.t >= s.seconds) return this.next();
         break;
       }
@@ -405,8 +543,10 @@ export class MissionRunner {
       case 'lose_wanted': if (w.wanted.level === 0) return this.next(); break;
       case 'collect': {
         const r = (s.radius ?? 1.6) * TILE;
+        const canTake = this.modeOk(s.mode);
         st.left = (st.left as { x: number; y: number; idx: number }[]).filter((q) => {
           if (dist(px, py, q.x, q.y) >= r) return true;
+          if (!canTake) { this.hint = s.mode === 'foot' ? 'Descends du véhicule pour la ramasser' : 'Il te faut un véhicule'; return true; }
           w.bus.emit('sfx', { name: 'pickup' });
           w.bus.emit('missionCollect', { id: this.def.id, step: this.stepIndex, idx: q.idx });
           return false;

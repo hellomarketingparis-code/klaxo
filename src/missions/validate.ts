@@ -14,7 +14,7 @@ export interface ValidationResult { ok: boolean; errors: string[]; }
 const PROFILES = ['passerby', 'employee', 'shopkeeper', 'courier', 'tourist', 'worker', 'robot', 'cop', 'guard'];
 const MODES = ['any', 'foot', 'vehicle'];
 const WORLD_SETS = ['traffic', 'pedestrians', 'lights_blink', 'robots'];
-const SFX = ['coin', 'horn', 'alarm', 'tick', 'cuckoo', 'neon', 'start', 'success', 'fail', 'phone', 'robot'];
+const SFX = ['coin', 'horn', 'alarm', 'tick', 'cuckoo', 'neon', 'start', 'success', 'fail', 'phone', 'robot', 'groan', 'cure'];
 
 class Ctx {
   errors: string[] = [];
@@ -92,6 +92,12 @@ class Ctx {
       case 'wanted': if (this.obj(a, p, ['do', 'level'], ['level'])) this.num(a.level, `${p}.level`, 0, 5, true); break;
       case 'sfx': if (this.obj(a, p, ['do', 'name'], ['name'])) this.oneOf(a.name, `${p}.name`, SFX); break;
       case 'world': if (this.obj(a, p, ['do', 'set', 'value', 'seconds'], ['set', 'value', 'seconds'])) { this.oneOf(a.set, `${p}.set`, WORLD_SETS); this.num(a.value, `${p}.value`, 0, 2); this.num(a.seconds, `${p}.seconds`, 1, 900); } break;
+      case 'zombies': if (this.obj(a, p, ['do', 'at', 'count', 'spread', 'aggro'], ['at', 'count'])) {
+        this.loc(a.at, `${p}.at`); this.num(a.count, `${p}.count`, 1, 10, true);
+        if (a.spread !== undefined) this.num(a.spread, `${p}.spread`, 1, 12, true);
+        if (a.aggro !== undefined) this.num(a.aggro, `${p}.aggro`, 3, 40, true);
+      } break;
+      case 'cure_zombies': this.obj(a, p, ['do'], []); break;
     }
   }
   locs(v: any, path: string, min: number, max: number): void {
@@ -130,10 +136,10 @@ class Ctx {
         if (s.color !== undefined && !/^#[0-9a-fA-F]{6}$/.test(s.color)) this.err(`${p}.color`, 'couleur #rrggbb attendue');
         if (s.objectiveFollow !== undefined) this.str(s.objectiveFollow, `${p}.objectiveFollow`, 110);
       } break;
-      case 'observe': if (allow(['target', 'radius', 'seconds'], ['target', 'seconds'])) { this.loc(s.target, `${p}.target`); radius(); this.num(s.seconds, `${p}.seconds`, 1, 60); } break;
+      case 'observe': if (allow(['target', 'radius', 'seconds', 'mode', 'label'], ['target', 'seconds'])) { this.loc(s.target, `${p}.target`); radius(); mode(); this.num(s.seconds, `${p}.seconds`, 1, 60); if (s.label !== undefined) this.str(s.label, `${p}.label`, 30); } break;
       case 'leave': if (allow(['target', 'radius'], ['target', 'radius'])) { this.loc(s.target, `${p}.target`); this.num(s.radius, `${p}.radius`, 3, 60); } break;
       case 'lose_wanted': allow([], []); break;
-      case 'collect': if (allow(['targets', 'item', 'radius'], ['targets', 'item'])) { this.locs(s.targets, `${p}.targets`, 1, 10); this.item(s.item, `${p}.item`); radius(); } break;
+      case 'collect': if (allow(['targets', 'item', 'radius', 'mode'], ['targets', 'item'])) { this.locs(s.targets, `${p}.targets`, 1, 10); this.item(s.item, `${p}.item`); radius(); mode(); } break;
       case 'checkpoints': if (allow(['targets', 'radius', 'mode'], ['targets'])) { this.locs(s.targets, `${p}.targets`, 2, 12); radius(); mode(); } break;
       case 'passengers': if (allow(['fares'], ['fares'])) {
         if (!Array.isArray(s.fares) || s.fares.length < 1 || s.fares.length > 6) this.err(`${p}.fares`, '1 à 6 courses attendues');
@@ -178,7 +184,7 @@ function stepTargets(s: Step): Loc[] {
 
 export function validateMission(def: any, map: CityMap | null = null): ValidationResult {
   const c = new Ctx(map);
-  const top = ['schema', 'id', 'kind', 'title', 'summary', 'giver', 'intro', 'setup', 'steps', 'outro', 'punchline', 'reward', 'requires', 'news', 'publishedAt', 'expiresAt'];
+  const top = ['schema', 'id', 'kind', 'title', 'summary', 'giver', 'intro', 'setup', 'steps', 'outro', 'punchline', 'reward', 'bites', 'requires', 'news', 'publishedAt', 'expiresAt'];
   if (!c.obj(def, 'mission', top, ['schema', 'id', 'kind', 'title', 'summary', 'giver', 'intro', 'steps', 'reward'])) return { ok: false, errors: c.errors };
   if (def.schema !== 1) c.err('mission.schema', 'version de schéma inconnue');
   c.id(def.id, 'mission.id');
@@ -191,6 +197,7 @@ export function validateMission(def: any, map: CityMap | null = null): Validatio
   c.actions(def.setup, 'mission.setup');
   if (def.punchline !== undefined && c.obj(def.punchline, 'mission.punchline', ['title', 'text'], ['title', 'text'])) { c.str(def.punchline.title, 'mission.punchline.title', 60); c.str(def.punchline.text, 'mission.punchline.text', 260); }
   if (c.obj(def.reward, 'mission.reward', ['money', 'xp'], ['money', 'xp'])) { c.num(def.reward.money, 'mission.reward.money', 0, 5000, true); c.num(def.reward.xp, 'mission.reward.xp', 0, 1000, true); }
+  if (def.bites !== undefined) c.num(def.bites, 'mission.bites', 1, 9, true);
   if (def.requires !== undefined && c.obj(def.requires, 'mission.requires', ['missions', 'level'], [])) {
     if (def.requires.missions !== undefined) { if (!Array.isArray(def.requires.missions)) c.err('mission.requires.missions', 'liste attendue'); else def.requires.missions.forEach((m: any, i: number) => c.id(m, `mission.requires.missions[${i}]`)); }
     if (def.requires.level !== undefined) c.num(def.requires.level, 'mission.requires.level', 1, 50, true);

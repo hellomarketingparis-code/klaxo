@@ -7,6 +7,8 @@ export interface Look {
   /** 0 aucun, 1 casquette, 2 chapeau, 3 sac à dos, 4 lunettes, 5 casque, 6 képi */
   acc: number; accColor: number;
   robot?: boolean;
+  /** Zombie de mission : peau verdâtre, vêtements déchirés, bras tendus. */
+  zombie?: boolean;
 }
 
 export const SKINS = [0xf6d3b3, 0xe8b88a, 0xc98d5e, 0x9c6a43, 0x6f4526, 0x4a2c17];
@@ -19,6 +21,16 @@ export const HAIR_NAMES = ['Court', 'Long', 'Chauve', 'Crête', 'Chignon'];
 export const DEFAULT_LOOK: Look = { skin: SKINS[1], hair: HAIRS[0], hairStyle: 0, top: TOPS[0], bottom: BOTTOMS[0], acc: 0, accColor: TOPS[1] };
 
 export type ProfileKey = 'passerby' | 'employee' | 'shopkeeper' | 'courier' | 'tourist' | 'worker' | 'robot' | 'cop' | 'guard';
+
+const ZOMBIE_SKINS = [0x8fae7a, 0x9fb88a, 0x7f9c78, 0xa3b48c];
+const ZOMBIE_TOPS = [0x6b7a9a, 0x9a6a5a, 0xb8b0a0, 0x7a6a8a, 0x5a6a8a];
+/** Apparence d'un zombie (garde-robe limitée : peu de textures différentes). */
+export function zombieLook(rng: RNG): Look {
+  return {
+    skin: rng.pick(ZOMBIE_SKINS), hair: rng.pick([0x1c1b22, 0x4a3020, 0x5a5a5a, 0x3a3020]), hairStyle: rng.pick([0, 1, 2, 3]),
+    top: rng.pick(ZOMBIE_TOPS), bottom: rng.pick([0x2a2a2a, 0x3b3a4a, 0x4a3a2a]), acc: 0, accColor: TOPS[0], zombie: true,
+  };
+}
 
 export function randomLook(profile: ProfileKey, rng: RNG): Look {
   const base: Look = {
@@ -39,5 +51,5 @@ export function randomLook(profile: ProfileKey, rng: RNG): Look {
   return base;
 }
 export function lookKey(l: Look): string {
-  return `ped_${l.skin.toString(16)}_${l.hair.toString(16)}_${l.hairStyle}_${l.top.toString(16)}_${l.bottom.toString(16)}_${l.acc}_${l.accColor.toString(16)}${l.robot ? '_r' : ''}`;
+  return `ped_${l.skin.toString(16)}_${l.hair.toString(16)}_${l.hairStyle}_${l.top.toString(16)}_${l.bottom.toString(16)}_${l.acc}_${l.accColor.toString(16)}${l.robot ? '_r' : ''}${l.zombie ? '_z' : ''}`;
 }

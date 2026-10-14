@@ -14,7 +14,7 @@ export interface DialogDef { who: string; text: string; }
 export interface NpcDef { name: string; profile: ProfileKey; at: Loc; }
 export interface ItemDef { id: string; name: string; }
 
-export const ACTION_TYPES = ['toast', 'say', 'dialog', 'reveal', 'spawn_npc', 'spawn_vehicle', 'spawn_guards', 'despawn', 'wanted', 'sfx', 'world'] as const;
+export const ACTION_TYPES = ['toast', 'say', 'dialog', 'reveal', 'spawn_npc', 'spawn_vehicle', 'spawn_guards', 'despawn', 'wanted', 'sfx', 'world', 'zombies', 'cure_zombies'] as const;
 export type Action =
   | { do: 'toast'; text: string }
   | { do: 'say'; who: string; text: string }
@@ -26,7 +26,11 @@ export type Action =
   | { do: 'despawn'; tag: string }
   | { do: 'wanted'; level: number }
   | { do: 'sfx'; name: string }
-  | { do: 'world'; set: 'traffic' | 'pedestrians' | 'lights_blink' | 'robots'; value: number; seconds: number };
+  | { do: 'world'; set: 'traffic' | 'pedestrians' | 'lights_blink' | 'robots'; value: number; seconds: number }
+  /** Fait apparaître `count` zombies autour d'un lieu. `spread` : dispersion en tuiles. `aggro` : distance (tuiles) à laquelle ils repèrent le joueur. */
+  | { do: 'zombies'; at: Loc; count: number; spread?: number; aggro?: number }
+  /** Guérit tous les zombies de la mission : ils redeviennent des habitants ordinaires. */
+  | { do: 'cure_zombies' };
 
 export const STEP_TYPES = ['talk', 'goto', 'pickup', 'get_vehicle', 'deliver', 'tail', 'observe', 'leave', 'lose_wanted', 'collect', 'checkpoints', 'passengers', 'wait'] as const;
 export type StepType = (typeof STEP_TYPES)[number];
@@ -58,10 +62,10 @@ export interface TailStep extends StepBase {
   min: number; max: number;
   objectiveFollow?: string;
 }
-export interface ObserveStep extends StepBase { type: 'observe'; target: Loc; radius?: number; seconds: number; }
+export interface ObserveStep extends StepBase { type: 'observe'; target: Loc; radius?: number; seconds: number; mode?: MoveMode; /** Nom de la jauge (par défaut « Observation »). */ label?: string; }
 export interface LeaveStep extends StepBase { type: 'leave'; target: Loc; radius: number; }
 export interface LoseWantedStep extends StepBase { type: 'lose_wanted'; }
-export interface CollectStep extends StepBase { type: 'collect'; targets: Loc[]; item: ItemDef; radius?: number; }
+export interface CollectStep extends StepBase { type: 'collect'; targets: Loc[]; item: ItemDef; radius?: number; mode?: MoveMode; }
 export interface CheckpointsStep extends StepBase { type: 'checkpoints'; targets: Loc[]; radius?: number; mode?: MoveMode; }
 export interface PassengersStep extends StepBase { type: 'passengers'; fares: { name: string; from: Loc; to: Loc; line?: string; profile?: ProfileKey }[]; }
 export interface WaitStep extends StepBase { type: 'wait'; seconds: number; }
@@ -83,6 +87,8 @@ export interface MissionDef {
   /** Texte de chute affiché en grand à la réussite. */
   punchline?: { title: string; text: string };
   reward: { money: number; xp: number };
+  /** Morsures de zombies tolérées avant l'échec (3 par défaut s'il y a des zombies). */
+  bites?: number;
   requires?: { missions?: string[]; level?: number };
   /** Mission d'actualité : fait réel qui l'a inspirée. */
   news?: { headline: string; source: string; url: string; date: string; category: string };

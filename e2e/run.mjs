@@ -347,6 +347,25 @@ await test('   mission de l’actualité jouable depuis le kiosque', async () =>
   return `effets en ville : ${check.due.join(', ') || 'aucun cette semaine'}`;
 });
 
+await test('   mission zombies : ils poursuivent, mordent et reculent quand on crie', async () => {
+  await page.evaluate(() => { const w = window.__klaxo.world; w.missions.begin(w.missions.find('story-04-zombies'), 0); });
+  await waitState(page, () => window.__klaxo.world.missions.active && window.__klaxo.world.missions.active.zombies.length >= 3);
+  await page.evaluate(() => { const w = window.__klaxo.world, z = w.missions.active.zombies[0]; if (w.player.vehicle) w.exitVehicle(true); w.player.state = 'foot'; w.player.x = z.x + 46; w.player.y = z.y; });
+  await sleep(1300);
+  const before = await page.evaluate(() => { const w = window.__klaxo.world, z = w.missions.active.zombies[0]; return Math.hypot(z.x - w.player.px, z.y - w.player.py); });
+  assert(before < 46, `le zombie ne s’approche pas (${Math.round(before)} px)`);
+  const shown = await page.evaluate(() => window.__klaxo.world.peds.filter((q) => q.look.zombie && window.__klaxo.world.inView(q.x, q.y)).length);
+  assert(shown >= 1, 'aucun zombie à l’écran');
+  await page.screenshot({ path: path.join(shots, '15-zombies.png') });
+  await page.keyboard.press('Space');
+  await sleep(150);
+  const stunned = await page.evaluate(() => window.__klaxo.world.missions.active.zombies.filter((z) => z.ai.stun > 0).length);
+  assert(stunned >= 1, 'le cri n’a pas fait reculer les zombies');
+  await page.evaluate(() => window.__klaxo.world.missions.abort());
+  await waitState(page, () => !window.__klaxo.world.peds.some((q) => q.look.zombie));
+  return `${shown} zombie(s) à l’écran, ${stunned} repoussé(s) par le cri`;
+});
+
 await test('   performances (indicatif : rendu logiciel sans carte graphique)', async () => {
   await page.evaluate(() => { const g = window.__klaxo; g.debug.tp('x_centre', 40, 40); });
   await sleep(1000);
@@ -375,7 +394,7 @@ await test('   mission hebdomadaire invalide : ignorée, le jeu démarre', async
 await test('   sources d’actualité absentes : le jeu démarre avec l’histoire seule', async () => {
   const { page: p3 } = await open(bad, { route: async (p) => { await p.route('**/data/missions/weekly.json', (r) => r.fulfill({ status: 404, body: 'x' })); await p.route('**/data/world/**', (r) => r.abort()); await p.route('**/data/missions/story.json', (r) => r.abort()); } });
   const s = await p3.evaluate(() => ({ weekly: window.__klaxo.weekly.mission, story: window.__klaxo.world.missions.story.length }));
-  assert(s.weekly === null && s.story === 3, `état inattendu : ${JSON.stringify(s)}`);
+  assert(s.weekly === null && s.story === 4, `état inattendu : ${JSON.stringify(s)}`);
   await p3.close();
 });
 await bad.close();

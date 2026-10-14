@@ -6,7 +6,7 @@ import { lookKey } from './looks';
 import type { Look, ProfileKey } from './looks';
 
 export type PedState = 'walk' | 'idle' | 'wait' | 'chat' | 'look' | 'flee' | 'down' | 'static' | 'seek';
-export type PedRole = 'civil' | 'cop' | 'guard' | 'npc';
+export type PedRole = 'civil' | 'cop' | 'guard' | 'npc' | 'zombie';
 let nextPedId = 100000;
 
 /** Personnage à pied (habitant, policier, garde, personnage de mission). */

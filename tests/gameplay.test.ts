@@ -134,6 +134,9 @@ describe('police', () => {
   });
   it('renverser un piéton devant témoin déclenche une recherche', () => {
     const w = makeWorld(10, { traffic: false });
+    // Un agent à pied regarde la scène : la dénonciation ne dépend plus du hasard.
+    const cop = w.pedSys.spawn(w.player.x + 24, w.player.y, 'cop');
+    cop.role = 'cop'; cop.state = 'static';
     w.wanted.crime('pedHit', w.player.x, w.player.y);
     w.wanted.crime('pedHit', w.player.x, w.player.y);
     w.wanted.crime('pedHit', w.player.x, w.player.y);

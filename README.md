@@ -28,8 +28,8 @@ npm run preview    # sert dist/ sur http://localhost:4173
 
 | Commande | Effet |
 | --- | --- |
-| `npm test` | 81 tests automatisés de la simulation (ville, circulation, police, missions, sauvegarde, données) |
-| `npm run test:e2e` | 34 vérifications dans un vrai navigateur (Chromium), clavier et tactile. Lancer `npm run build` avant. |
+| `npm test` | 88 tests automatisés de la simulation (ville, circulation, police, missions, sauvegarde, données) |
+| `npm run test:e2e` | 35 vérifications dans un vrai navigateur (Chromium), clavier et tactile. Lancer `npm run build` avant. |
 | `npm run validate:data` | Valide tous les fichiers de `public/data` |
 | `npm run weekly` | Génère la mission de la semaine à partir des flux d'actualité |
 | `npm run build:single` | Produit `single/klaxo.html` : tout le jeu dans un seul fichier, sans mode hors ligne |
@@ -47,7 +47,7 @@ Jouable dès maintenant :
 - Une circulation autonome qui suit les voies, s'arrête aux feux, cède le passage, contourne les obstacles et klaxonne.
 - Des habitants avec des routines : ils marchent, attendent au passage piéton, discutent, regardent les accidents, fuient le danger. Sept profils.
 - Une police à cinq niveaux de recherche : témoins, patrouilles, poursuite en voiture et à pied, interception, barrages, arrestation et amende. On la sème en restant hors de vue ou en repeignant sa voiture.
-- Trois missions d'histoire aux mécaniques différentes : livraison fragile chronométrée, filature, infiltration.
+- Quatre missions d'histoire aux mécaniques différentes : livraison fragile chronométrée, filature, infiltration, et une invasion de zombies assoiffés de café (on les repousse au klaxon). La mission zombies est proposée dès le début.
 - Huit types d'événements de rue aléatoires, jamais déclenchés pendant une mission.
 - Une économie : argent virtuel, niveaux, concessionnaire, garages, boutique de vêtements, 14 succès, statistiques.
 - Une mission d'actualité hebdomadaire et des changements dans la ville (robots dans les rues, prix, éclairage, décorations, répliques).
@@ -67,7 +67,7 @@ Prévu, pas encore fait :
 
 Testé automatiquement dans cet environnement :
 
-- La simulation complète sans affichage : 81 tests, dont 16 pour le jeu en ligne (format des messages, villes pleines, mission complète en équipe sur un réseau simulé), dont un pilote automatique qui conduit réellement de l'épicerie à l'hôtel pour la mission 1, une filature menée de bout en bout, et l'infiltration.
+- La simulation complète sans affichage : 88 tests, dont 7 pour la mission zombies (poursuite, morsures, cri, voiture, partie complète), dont 16 pour le jeu en ligne (format des messages, villes pleines, mission complète en équipe sur un réseau simulé), dont un pilote automatique qui conduit réellement de l'épicerie à l'hôtel pour la mission 1, une filature menée de bout en bout, et l'infiltration.
 - Le jeu compilé dans Chromium (Playwright) : les 15 critères de validation de la première version, la sauvegarde après rechargement, le fonctionnement hors ligne, les données invalides, un téléphone émulé (écran 844 × 390, tactile multipoint) et deux onglets qui jouent ensemble (se voir, se suivre, mission en équipe, klaxon, départ).
 
 Vérifié en ligne le 13 octobre 2026 : le jeu publié sur GitHub Pages démarre avec sa mission de la semaine et son mode hors ligne ; le robot hebdomadaire a lu les 11 flux d'actualité (240 titres), produit une mission valide, l'a enregistrée dans le dépôt et a republié le jeu.

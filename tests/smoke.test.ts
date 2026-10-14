@@ -44,7 +44,7 @@ describe('ville', () => {
 describe('missions de l’histoire', () => {
   it('sont valides et faisables', () => {
     const defs = readJson('missions/story.json').missions;
-    expect(defs.length).toBe(3);
+    expect(defs.length).toBe(4);
     for (const def of defs) expect(validateMission(def, city()).errors, def.id).toEqual([]);
   });
 });

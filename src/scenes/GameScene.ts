@@ -353,6 +353,8 @@ export class GameScene extends Phaser.Scene {
       const vis = Math.abs(q.x - this.camX) < cam.width / 2 + 20 && Math.abs(q.y - this.camY) < cam.height / 2 + 20;
       sp.setVisible(vis);
       if (!vis) continue;
+      // Apparence changée en cours de route (zombie guéri).
+      if (sp.texture.key !== q.lookKey) sp.setTexture(this.ensurePed(q.look), 0);
       sp.setPosition(q.x, q.y).setRotation(q.angle).setFrame(this.pedFrame(q));
     }
     for (const [id, sp] of this.pedViews) if (!seen.has(id)) { sp.destroy(); this.pedViews.delete(id); }

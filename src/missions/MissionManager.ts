@@ -52,8 +52,8 @@ export class MissionManager {
   /** Missions proposées en ville actuellement. */
   available(): MissionDef[] {
     const out: MissionDef[] = [];
-    const nextStory = this.story.find((d) => !this.isDone(d.id) && this.unlocked(d));
-    if (nextStory) out.push(nextStory);
+    // Toutes les missions d'histoire débloquées et pas encore réussies (chacune a son donneur).
+    for (const d of this.story) if (!this.isDone(d.id) && this.unlocked(d)) out.push(d);
     if (this.weekly && !this.isDone(this.weekly.id) && this.unlocked(this.weekly)) out.push(this.weekly);
     return out;
   }
