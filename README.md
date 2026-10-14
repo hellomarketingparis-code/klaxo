@@ -36,6 +36,8 @@ npm run preview    # sert dist/ sur http://localhost:4173
 | `npm run icons` | Redessine les icônes de l'application |
 | `npm run schemas` | Régénère les schémas JSON de `schemas/` |
 | `npx tsx tools/dump-map.ts carte.png` | Exporte la carte de la ville en image |
+| `node tools/make-og.mjs` | Image d'aperçu des liens et visuels pour les réseaux sociaux (après `npm run build`) |
+| `node tools/make-trailer.mjs` | Bande-annonce verticale de 30 s filmée dans le jeu (après `npm run build`, nécessite ffmpeg) |
 
 ## Ce que contient cette version
 
@@ -127,3 +129,5 @@ Le détail chiffré, avec les sources, est dans [docs/DEPLOIEMENT.md](docs/DEPLO
 - [Mettre le jeu en ligne](docs/DEPLOIEMENT.md)
 - [Format des missions et des données](docs/MISSIONS.md)
 - [Développer les prochaines versions avec une IA](docs/GUIDE-IA.md)
+- [Jeu en ligne](docs/EN-LIGNE.md)
+- [Faire connaître le jeu : partage, visuels, textes, plan de lancement](docs/LANCEMENT.md)

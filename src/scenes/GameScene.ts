@@ -497,8 +497,10 @@ export class GameScene extends Phaser.Scene {
 
   /** Conversion monde → écran (0..1), pour positionner l'interface HTML. */
   project(x: number, y: number): { x: number; y: number } {
-    const cam = this.cameras.main;
-    return { x: (x - cam.scrollX) / cam.width, y: (y - cam.scrollY) / cam.height };
+    // Zone du monde réellement visible (tient compte d'un éventuel zoom de la caméra).
+    const v = this.cameras.main.worldView;
+    if (!v.width || !v.height) { const cam = this.cameras.main; return { x: (x - cam.scrollX) / cam.width, y: (y - cam.scrollY) / cam.height }; }
+    return { x: (x - v.x) / v.width, y: (y - v.y) / v.height };
   }
   get stats(): { chunks: number; vehicles: number; peds: number; fps: number } {
     return { chunks: this.chunks.size, vehicles: this.vehViews.size, peds: this.pedViews.size, fps: Math.round(this.game.loop.actualFps) };
