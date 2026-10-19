@@ -1,0 +1,97 @@
+{
+  "schema": 1,
+  "generatedAt": "2026-10-19T05:47:35.909Z",
+  "missions": [
+    {
+      "schema": 1,
+      "id": "weekly-2026-w43-space",
+      "kind": "weekly",
+      "title": "Tombé du ciel",
+      "summary": "Des débris venus de l’espace auraient atterri à Klaxo. Le musée les veut. Les curieux aussi.",
+      "giver": {
+        "name": "Jo la Dépêche",
+        "profile": "shopkeeper",
+        "at": {
+          "poi": "kiosk",
+          "dx": 2
+        }
+      },
+      "intro": [
+        {
+          "who": "giver",
+          "text": "Paraît qu’un bout de satellite est tombé sur la ville cette nuit. En quatre morceaux."
+        },
+        {
+          "who": "player",
+          "text": "C’est dangereux ?"
+        },
+        {
+          "who": "giver",
+          "text": "C’est surtout exposable. Le Musée du Klaxon paie pour chaque morceau. Ramasse-les avant les collectionneurs."
+        }
+      ],
+      "steps": [
+        {
+          "type": "collect",
+          "objective": "Ramasse les débris tombés du ciel",
+          "targets": [
+            {
+              "poi": "jetee"
+            },
+            {
+              "poi": "plage"
+            },
+            {
+              "poi": "marche"
+            },
+            {
+              "poi": "quai_nord"
+            }
+          ],
+          "item": {
+            "id": "debris",
+            "name": "Débris spatial"
+          },
+          "radius": 2,
+          "timeLimit": 250,
+          "checkpoint": true
+        },
+        {
+          "type": "deliver",
+          "objective": "Apporte les débris au musée",
+          "target": {
+            "poi": "musee"
+          },
+          "radius": 5,
+          "item": {
+            "id": "debris",
+            "name": "Les débris"
+          }
+        }
+      ],
+      "punchline": {
+        "title": "Expertise",
+        "text": "Après analyse, le musée confirme l’origine des débris : une antenne de télévision, modèle 1987. Elle est quand même exposée, avec un cartel très sérieux."
+      },
+      "outro": [
+        {
+          "who": "giver",
+          "text": "L’espace, c’est loin. Les toits, c’est plus près."
+        }
+      ],
+      "reward": {
+        "money": 900,
+        "xp": 190
+      },
+      "news": {
+        "headline": "Mission set to blast off for Mars to grab a piece of its moon",
+        "source": "BBC News",
+        "url": "https://www.bbc.co.uk/news/articles/cmvgxvkv54w1o?at_medium=RSS&at_campaign=rss",
+        "date": "2026-10-18T23:00:48.000Z",
+        "category": "space"
+      },
+      "publishedAt": "2026-10-19T00:00:00.000Z",
+      "expiresAt": "2026-10-27T00:00:00.000Z"
+    }
+  ]
+}

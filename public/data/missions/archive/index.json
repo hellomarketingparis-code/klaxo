@@ -2,6 +2,13 @@
   "schema": 1,
   "items": [
     {
+      "id": "weekly-2026-w43-space",
+      "title": "Tombé du ciel",
+      "week": "2026-W43",
+      "file": "2026-W43.json",
+      "headline": "Mission set to blast off for Mars to grab a piece of its moon"
+    },
+    {
       "id": "weekly-2026-w42-transport",
       "title": "Tout le monde en taxi",
       "week": "2026-W42",

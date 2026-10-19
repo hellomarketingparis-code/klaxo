@@ -1,13 +1,13 @@
 {
   "schema": 1,
-  "generatedAt": "2026-10-13T12:00:00.000Z",
+  "generatedAt": "2026-10-19T05:47:35.909Z",
   "missions": [
     {
       "schema": 1,
-      "id": "weekly-2026-w42-transport",
+      "id": "weekly-2026-w43-space",
       "kind": "weekly",
-      "title": "Tout le monde en taxi",
-      "summary": "Les transports sont à l’arrêt. La ville entière cherche un chauffeur. Tu as une voiture, donc une vocation.",
+      "title": "Tombé du ciel",
+      "summary": "Des débris venus de l’espace auraient atterri à Klaxo. Le musée les veut. Les curieux aussi.",
       "giver": {
         "name": "Jo la Dépêche",
         "profile": "shopkeeper",
@@ -19,95 +19,79 @@
       "intro": [
         {
           "who": "giver",
-          "text": "Plus un bus, plus un tram. La moitié de la ville est coincée sur le trottoir."
+          "text": "Paraît qu’un bout de satellite est tombé sur la ville cette nuit. En quatre morceaux."
         },
         {
           "who": "player",
-          "text": "Et l’autre moitié ?"
+          "text": "C’est dangereux ?"
         },
         {
           "who": "giver",
-          "text": "Elle klaxonne. Prends une voiture et dépose trois naufragés. Ils paient en gratitude. Moi, en vrai argent."
+          "text": "C’est surtout exposable. Le Musée du Klaxon paie pour chaque morceau. Ramasse-les avant les collectionneurs."
         }
       ],
       "steps": [
         {
-          "type": "get_vehicle",
-          "objective": "Trouve un véhicule",
+          "type": "collect",
+          "objective": "Ramasse les débris tombés du ciel",
+          "targets": [
+            {
+              "poi": "jetee"
+            },
+            {
+              "poi": "plage"
+            },
+            {
+              "poi": "marche"
+            },
+            {
+              "poi": "quai_nord"
+            }
+          ],
+          "item": {
+            "id": "debris",
+            "name": "Débris spatial"
+          },
+          "radius": 2,
+          "timeLimit": 250,
           "checkpoint": true
         },
         {
-          "type": "passengers",
-          "objective": "Dépose les trois voyageurs bloqués",
-          "timeLimit": 270,
-          "onStart": [
-            {
-              "do": "world",
-              "set": "traffic",
-              "value": 1.5,
-              "seconds": 600
-            }
-          ],
-          "fares": [
-            {
-              "name": "Madame Correspondance",
-              "from": {
-                "poi": "gare"
-              },
-              "to": {
-                "poi": "hotel"
-              },
-              "profile": "tourist",
-              "line": "Mon train a deux jours de retard. J’ai fini mon livre. Deux fois."
-            },
-            {
-              "name": "Monsieur Pointeuse",
-              "from": {
-                "poi": "parc"
-              },
-              "to": {
-                "poi": "tour"
-              },
-              "profile": "employee",
-              "line": "Vite ! Ma réunion a commencé. Elle porte sur les retards."
-            },
-            {
-              "name": "Le contrôleur",
-              "from": {
-                "poi": "mairie"
-              },
-              "to": {
-                "poi": "gare"
-              },
-              "profile": "employee",
-              "line": "Vous avez votre titre de transport ? Pardon. Déformation professionnelle."
-            }
-          ]
+          "type": "deliver",
+          "objective": "Apporte les débris au musée",
+          "target": {
+            "poi": "musee"
+          },
+          "radius": 5,
+          "item": {
+            "id": "debris",
+            "name": "Les débris"
+          }
         }
       ],
       "punchline": {
-        "title": "Service minimum",
-        "text": "Le trafic reprendra « progressivement ». Le dictionnaire de la ville précise : progressivement, adverbe, synonyme de « un jour »."
+        "title": "Expertise",
+        "text": "Après analyse, le musée confirme l’origine des débris : une antenne de télévision, modèle 1987. Elle est quand même exposée, avec un cartel très sérieux."
       },
       "outro": [
         {
           "who": "giver",
-          "text": "Tu as transporté plus de monde que la ligne 3 ce mois-ci. Bravo."
+          "text": "L’espace, c’est loin. Les toits, c’est plus près."
         }
       ],
       "reward": {
         "money": 900,
-        "xp": 180
+        "xp": 190
       },
       "news": {
-        "headline": "Grève nationale du 17 octobre : à quoi faut-il s'attendre dans les transports ?",
-        "source": "DéplacementsPros",
-        "url": "https://www.deplacementspros.com/transport/greve-nationale-du-17-octobre-a-quoi-faut-il-s-attendre",
-        "date": "2026-10-09T00:00:00.000Z",
-        "category": "transport"
+        "headline": "Mission set to blast off for Mars to grab a piece of its moon",
+        "source": "BBC News",
+        "url": "https://www.bbc.co.uk/news/articles/cmvgxvkv54w1o?at_medium=RSS&at_campaign=rss",
+        "date": "2026-10-18T23:00:48.000Z",
+        "category": "space"
       },
-      "publishedAt": "2026-10-12T00:00:00.000Z",
-      "expiresAt": "2026-10-20T00:00:00.000Z"
+      "publishedAt": "2026-10-19T00:00:00.000Z",
+      "expiresAt": "2026-10-27T00:00:00.000Z"
     }
   ]
 }
