@@ -2,6 +2,13 @@
   "schema": 1,
   "items": [
     {
+      "id": "weekly-2026-w44-prices",
+      "title": "La baguette en or",
+      "week": "2026-W44",
+      "file": "2026-W44.json",
+      "headline": "L'opposante v&#xE9;n&#xE9;zu&#xE9;lienne et prix Nobel de la paix Maria Corina Machado annonce &#xEA;tre de retour dans son pays"
+    },
+    {
       "id": "weekly-2026-w43-space",
       "title": "Tombé du ciel",
       "week": "2026-W43",

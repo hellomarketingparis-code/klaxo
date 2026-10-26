@@ -1,0 +1,113 @@
+{
+  "schema": 1,
+  "generatedAt": "2026-10-26T05:51:05.402Z",
+  "missions": [
+    {
+      "schema": 1,
+      "id": "weekly-2026-w44-prices",
+      "kind": "weekly",
+      "title": "La baguette en or",
+      "summary": "Les prix s’envolent. Le marché confie sa dernière baguette abordable à un coffre de la banque.",
+      "giver": {
+        "name": "Jo la Dépêche",
+        "profile": "shopkeeper",
+        "at": {
+          "poi": "kiosk",
+          "dx": 2
+        }
+      },
+      "intro": [
+        {
+          "who": "giver",
+          "text": "Tu as vu les prix ? Au marché, il reste UNE baguette à l’ancien tarif. Ils veulent la mettre au coffre."
+        },
+        {
+          "who": "player",
+          "text": "Une baguette. Dans un coffre."
+        },
+        {
+          "who": "giver",
+          "text": "À la Banque Pognon. C’est fragile, c’est précieux, et ça refroidit. Fonce, mais ne la casse pas."
+        }
+      ],
+      "steps": [
+        {
+          "type": "pickup",
+          "objective": "Prends la baguette au marché",
+          "target": {
+            "poi": "marche"
+          },
+          "item": {
+            "id": "baguette",
+            "name": "Baguette à l’ancien prix"
+          }
+        },
+        {
+          "type": "get_vehicle",
+          "objective": "Trouve un véhicule",
+          "checkpoint": true
+        },
+        {
+          "type": "deliver",
+          "objective": "Mets la baguette à l’abri à la Banque Pognon",
+          "target": {
+            "poi": "banque"
+          },
+          "radius": 5,
+          "timeLimit": 140,
+          "fragile": {
+            "max": 4
+          },
+          "item": {
+            "id": "baguette",
+            "name": "La baguette"
+          },
+          "events": [
+            {
+              "at": 25,
+              "do": [
+                {
+                  "do": "say",
+                  "who": "Jo la Dépêche",
+                  "text": "Elle a encore pris dix centimes pendant que tu roulais."
+                }
+              ]
+            },
+            {
+              "at": 60,
+              "do": [
+                {
+                  "do": "toast",
+                  "text": "La baguette refroidit. Sa valeur aussi."
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "punchline": {
+        "title": "Valeur refuge",
+        "text": "La baguette repose désormais en salle des coffres, entre deux lingots. Le banquier assure qu’elle a déjà pris 4 %. Elle a surtout pris un coup de vieux."
+      },
+      "outro": [
+        {
+          "who": "giver",
+          "text": "Demain, on essaie avec un croissant. Il paraît que c’est plus spéculatif."
+        }
+      ],
+      "reward": {
+        "money": 950,
+        "xp": 180
+      },
+      "news": {
+        "headline": "L'opposante v&#xE9;n&#xE9;zu&#xE9;lienne et prix Nobel de la paix Maria Corina Machado annonce &#xEA;tre de retour dans son pays",
+        "source": "franceinfo",
+        "url": "https://www.franceinfo.fr/monde/venezuela/l-opposante-et-prix-nobel-de-la-paix-maria-corina-machado-annonce-etre-de-retour-au-venezuela_8253460.html#xtor=RSS-3-[lestitres]",
+        "date": "2026-10-25T18:42:30.000Z",
+        "category": "prices"
+      },
+      "publishedAt": "2026-10-26T00:00:00.000Z",
+      "expiresAt": "2026-11-03T00:00:00.000Z"
+    }
+  ]
+}

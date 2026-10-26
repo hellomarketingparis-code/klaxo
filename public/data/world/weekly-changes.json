@@ -1,19 +1,27 @@
 {
   "schema": 1,
-  "generatedAt": "2026-10-19T05:47:35.909Z",
+  "generatedAt": "2026-10-26T05:51:05.402Z",
   "changes": [
     {
-      "id": "2026-w43-chatter",
-      "start": "2026-10-19T00:00:00.000Z",
-      "end": "2026-10-27T00:00:00.000Z",
+      "id": "2026-w44-prix",
+      "start": "2026-10-26T00:00:00.000Z",
+      "end": "2026-11-03T00:00:00.000Z",
+      "type": "prices",
+      "label": "Hausse des prix : garages et boutiques augmentent leurs tarifs.",
+      "factor": 1.2
+    },
+    {
+      "id": "2026-w44-chatter",
+      "start": "2026-10-26T00:00:00.000Z",
+      "end": "2026-11-03T00:00:00.000Z",
       "type": "chatter",
-      "label": "La ville lève les yeux au ciel.",
+      "label": "Tout le monde parle des prix.",
       "lines": [
-        "Tu l’as vu tomber, toi ?",
-        "Je regarde en l’air depuis ce matin.",
-        "Si ça se trouve, c’est une étoile.",
-        "J’ai fait un vœu. On verra.",
-        "C’est passé au-dessus de chez moi. Enfin, je crois."
+        "Tu as vu le prix du café ?",
+        "Je regarde les vitrines, c’est gratuit.",
+        "À ce prix-là, je la veux dédicacée, la baguette.",
+        "J’ai payé un sandwich en trois fois.",
+        "Même les soldes ont augmenté."
       ]
     }
   ]
