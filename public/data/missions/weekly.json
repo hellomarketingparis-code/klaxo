@@ -1,13 +1,13 @@
 {
   "schema": 1,
-  "generatedAt": "2026-10-26T05:51:05.402Z",
+  "generatedAt": "2026-11-02T06:16:15.171Z",
   "missions": [
     {
       "schema": 1,
-      "id": "weekly-2026-w44-prices",
+      "id": "weekly-2026-w45-culture",
       "kind": "weekly",
-      "title": "La baguette en or",
-      "summary": "Les prix s’envolent. Le marché confie sa dernière baguette abordable à un coffre de la banque.",
+      "title": "La coupe est pleine",
+      "summary": "La ville fête un grand événement. Il manque juste le trophée, resté à la gare.",
       "giver": {
         "name": "Jo la Dépêche",
         "profile": "shopkeeper",
@@ -19,66 +19,61 @@
       "intro": [
         {
           "who": "giver",
-          "text": "Tu as vu les prix ? Au marché, il reste UNE baguette à l’ancien tarif. Ils veulent la mettre au coffre."
+          "text": "Toute la ville est décorée et la cérémonie commence. Devine ce qu’ils ont oublié à la gare."
         },
         {
           "who": "player",
-          "text": "Une baguette. Dans un coffre."
+          "text": "Le trophée."
         },
         {
           "who": "giver",
-          "text": "À la Banque Pognon. C’est fragile, c’est précieux, et ça refroidit. Fonce, mais ne la casse pas."
+          "text": "Le trophée. Il est fragile, la foule est dense, et le maire a déjà commencé son discours. Tu as le temps : il parle longtemps."
         }
       ],
       "steps": [
         {
           "type": "pickup",
-          "objective": "Prends la baguette au marché",
+          "objective": "Récupère le trophée à la gare",
           "target": {
-            "poi": "marche"
+            "poi": "gare"
           },
           "item": {
-            "id": "baguette",
-            "name": "Baguette à l’ancien prix"
+            "id": "trophee",
+            "name": "Trophée de la ville"
           }
         },
         {
-          "type": "get_vehicle",
-          "objective": "Trouve un véhicule",
-          "checkpoint": true
-        },
-        {
           "type": "deliver",
-          "objective": "Mets la baguette à l’abri à la Banque Pognon",
+          "objective": "Apporte le trophée à la mairie sans le cabosser",
           "target": {
-            "poi": "banque"
+            "poi": "mairie"
           },
           "radius": 5,
-          "timeLimit": 140,
+          "timeLimit": 90,
           "fragile": {
             "max": 4
           },
           "item": {
-            "id": "baguette",
-            "name": "La baguette"
+            "id": "trophee",
+            "name": "Le trophée"
           },
+          "checkpoint": true,
+          "onStart": [
+            {
+              "do": "world",
+              "set": "pedestrians",
+              "value": 1.6,
+              "seconds": 600
+            }
+          ],
           "events": [
             {
-              "at": 25,
+              "at": 30,
               "do": [
                 {
                   "do": "say",
                   "who": "Jo la Dépêche",
-                  "text": "Elle a encore pris dix centimes pendant que tu roulais."
-                }
-              ]
-            },
-            {
-              "at": 60,
-              "do": [
-                {
-                  "do": "toast",
-                  "text": "La baguette refroidit. Sa valeur aussi."
+                  "text": "Le maire en est à « mes chers concitoyens ». Il te reste du temps."
                 }
               ]
             }
@@ -86,28 +81,28 @@
         }
       ],
       "punchline": {
-        "title": "Valeur refuge",
-        "text": "La baguette repose désormais en salle des coffres, entre deux lingots. Le banquier assure qu’elle a déjà pris 4 %. Elle a surtout pris un coup de vieux."
+        "title": "Cérémonie",
+        "text": "Le trophée est arrivé à temps. Le maire l’a brandi, remercié « celles et ceux sans qui », puis l’a fait tomber. Applaudissements nourris."
       },
       "outro": [
         {
           "who": "giver",
-          "text": "Demain, on essaie avec un croissant. Il paraît que c’est plus spéculatif."
+          "text": "Belle fête. On remet ça à la prochaine occasion. Ou sans occasion."
         }
       ],
       "reward": {
-        "money": 950,
+        "money": 900,
         "xp": 180
       },
       "news": {
-        "headline": "L'opposante v&#xE9;n&#xE9;zu&#xE9;lienne et prix Nobel de la paix Maria Corina Machado annonce &#xEA;tre de retour dans son pays",
-        "source": "franceinfo",
-        "url": "https://www.franceinfo.fr/monde/venezuela/l-opposante-et-prix-nobel-de-la-paix-maria-corina-machado-annonce-etre-de-retour-au-venezuela_8253460.html#xtor=RSS-3-[lestitres]",
-        "date": "2026-10-25T18:42:30.000Z",
-        "category": "prices"
+        "headline": "Binance users withdraw $3.6bn after record crypto hack",
+        "source": "BBC News",
+        "url": "https://www.bbc.co.uk/news/articles/cwj34gdmnly4o?at_medium=RSS&at_campaign=rss",
+        "date": "2026-11-02T03:32:14.000Z",
+        "category": "culture"
       },
-      "publishedAt": "2026-10-26T00:00:00.000Z",
-      "expiresAt": "2026-11-03T00:00:00.000Z"
+      "publishedAt": "2026-11-02T00:00:00.000Z",
+      "expiresAt": "2026-11-10T00:00:00.000Z"
     }
   ]
 }

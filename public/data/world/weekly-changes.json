@@ -1,28 +1,32 @@
 {
   "schema": 1,
-  "generatedAt": "2026-10-26T05:51:05.402Z",
+  "generatedAt": "2026-11-02T06:16:15.171Z",
   "changes": [
     {
-      "id": "2026-w44-prix",
-      "start": "2026-10-26T00:00:00.000Z",
-      "end": "2026-11-03T00:00:00.000Z",
-      "type": "prices",
-      "label": "Hausse des prix : garages et boutiques augmentent leurs tarifs.",
-      "factor": 1.2
+      "id": "2026-w45-decor-dt",
+      "start": "2026-11-02T00:00:00.000Z",
+      "end": "2026-11-10T00:00:00.000Z",
+      "type": "decor",
+      "label": "Downtown est pavoisé pour la fête.",
+      "district": "downtown",
+      "kind": "garlands"
     },
     {
-      "id": "2026-w44-chatter",
-      "start": "2026-10-26T00:00:00.000Z",
-      "end": "2026-11-03T00:00:00.000Z",
-      "type": "chatter",
-      "label": "Tout le monde parle des prix.",
-      "lines": [
-        "Tu as vu le prix du café ?",
-        "Je regarde les vitrines, c’est gratuit.",
-        "À ce prix-là, je la veux dédicacée, la baguette.",
-        "J’ai payé un sandwich en trois fois.",
-        "Même les soldes ont augmenté."
-      ]
+      "id": "2026-w45-decor-old",
+      "start": "2026-11-02T00:00:00.000Z",
+      "end": "2026-11-10T00:00:00.000Z",
+      "type": "decor",
+      "label": "Des fanions flottent sur Old Town.",
+      "district": "oldtown",
+      "kind": "banners"
+    },
+    {
+      "id": "2026-w45-pietons",
+      "start": "2026-11-02T00:00:00.000Z",
+      "end": "2026-11-10T00:00:00.000Z",
+      "type": "pedestrians",
+      "label": "Il y a foule dans les rues.",
+      "factor": 1.3
     }
   ]
 }

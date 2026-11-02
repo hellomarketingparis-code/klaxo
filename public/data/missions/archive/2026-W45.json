@@ -1,0 +1,108 @@
+{
+  "schema": 1,
+  "generatedAt": "2026-11-02T06:16:15.171Z",
+  "missions": [
+    {
+      "schema": 1,
+      "id": "weekly-2026-w45-culture",
+      "kind": "weekly",
+      "title": "La coupe est pleine",
+      "summary": "La ville fête un grand événement. Il manque juste le trophée, resté à la gare.",
+      "giver": {
+        "name": "Jo la Dépêche",
+        "profile": "shopkeeper",
+        "at": {
+          "poi": "kiosk",
+          "dx": 2
+        }
+      },
+      "intro": [
+        {
+          "who": "giver",
+          "text": "Toute la ville est décorée et la cérémonie commence. Devine ce qu’ils ont oublié à la gare."
+        },
+        {
+          "who": "player",
+          "text": "Le trophée."
+        },
+        {
+          "who": "giver",
+          "text": "Le trophée. Il est fragile, la foule est dense, et le maire a déjà commencé son discours. Tu as le temps : il parle longtemps."
+        }
+      ],
+      "steps": [
+        {
+          "type": "pickup",
+          "objective": "Récupère le trophée à la gare",
+          "target": {
+            "poi": "gare"
+          },
+          "item": {
+            "id": "trophee",
+            "name": "Trophée de la ville"
+          }
+        },
+        {
+          "type": "deliver",
+          "objective": "Apporte le trophée à la mairie sans le cabosser",
+          "target": {
+            "poi": "mairie"
+          },
+          "radius": 5,
+          "timeLimit": 90,
+          "fragile": {
+            "max": 4
+          },
+          "item": {
+            "id": "trophee",
+            "name": "Le trophée"
+          },
+          "checkpoint": true,
+          "onStart": [
+            {
+              "do": "world",
+              "set": "pedestrians",
+              "value": 1.6,
+              "seconds": 600
+            }
+          ],
+          "events": [
+            {
+              "at": 30,
+              "do": [
+                {
+                  "do": "say",
+                  "who": "Jo la Dépêche",
+                  "text": "Le maire en est à « mes chers concitoyens ». Il te reste du temps."
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "punchline": {
+        "title": "Cérémonie",
+        "text": "Le trophée est arrivé à temps. Le maire l’a brandi, remercié « celles et ceux sans qui », puis l’a fait tomber. Applaudissements nourris."
+      },
+      "outro": [
+        {
+          "who": "giver",
+          "text": "Belle fête. On remet ça à la prochaine occasion. Ou sans occasion."
+        }
+      ],
+      "reward": {
+        "money": 900,
+        "xp": 180
+      },
+      "news": {
+        "headline": "Binance users withdraw $3.6bn after record crypto hack",
+        "source": "BBC News",
+        "url": "https://www.bbc.co.uk/news/articles/cwj34gdmnly4o?at_medium=RSS&at_campaign=rss",
+        "date": "2026-11-02T03:32:14.000Z",
+        "category": "culture"
+      },
+      "publishedAt": "2026-11-02T00:00:00.000Z",
+      "expiresAt": "2026-11-10T00:00:00.000Z"
+    }
+  ]
+}
