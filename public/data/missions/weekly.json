@@ -1,13 +1,13 @@
 {
   "schema": 1,
-  "generatedAt": "2026-11-02T06:16:15.171Z",
+  "generatedAt": "2026-11-09T06:21:33.358Z",
   "missions": [
     {
       "schema": 1,
-      "id": "weekly-2026-w45-culture",
+      "id": "weekly-2026-w46-app",
       "kind": "weekly",
-      "title": "La coupe est pleine",
-      "summary": "La ville fête un grand événement. Il manque juste le trophée, resté à la gare.",
+      "title": "L’appli a toujours raison",
+      "summary": "L’application Wazou a reçu une mise à jour. Elle donne désormais des itinéraires très sûrs d’eux et très faux.",
       "giver": {
         "name": "Jo la Dépêche",
         "profile": "shopkeeper",
@@ -19,61 +19,71 @@
       "intro": [
         {
           "who": "giver",
-          "text": "Toute la ville est décorée et la cérémonie commence. Devine ce qu’ils ont oublié à la gare."
+          "text": "La nouvelle version de Wazou est sortie. Elle m’a fait livrer mes journaux en passant par la plage."
         },
         {
           "who": "player",
-          "text": "Le trophée."
+          "text": "Elle est cassée ?"
         },
         {
           "who": "giver",
-          "text": "Le trophée. Il est fragile, la foule est dense, et le maire a déjà commencé son discours. Tu as le temps : il parle longtemps."
+          "text": "Elle est « augmentée ». Suis ses indications jusqu’au bout, qu’on voie où elle veut en venir."
         }
       ],
       "steps": [
         {
-          "type": "pickup",
-          "objective": "Récupère le trophée à la gare",
-          "target": {
-            "poi": "gare"
-          },
-          "item": {
-            "id": "trophee",
-            "name": "Trophée de la ville"
-          }
+          "type": "get_vehicle",
+          "objective": "Trouve un véhicule",
+          "checkpoint": true
         },
         {
-          "type": "deliver",
-          "objective": "Apporte le trophée à la mairie sans le cabosser",
-          "target": {
-            "poi": "mairie"
-          },
-          "radius": 5,
-          "timeLimit": 90,
-          "fragile": {
-            "max": 4
-          },
-          "item": {
-            "id": "trophee",
-            "name": "Le trophée"
-          },
-          "checkpoint": true,
-          "onStart": [
+          "type": "checkpoints",
+          "objective": "Suis les indications de Wazou",
+          "mode": "vehicle",
+          "radius": 4,
+          "timeLimit": 190,
+          "targets": [
             {
-              "do": "world",
-              "set": "pedestrians",
-              "value": 1.6,
-              "seconds": 600
+              "poi": "x_ouest"
+            },
+            {
+              "poi": "x_nord"
+            },
+            {
+              "poi": "x_est"
+            },
+            {
+              "poi": "wazou"
             }
           ],
           "events": [
             {
-              "at": 30,
+              "at": 5,
               "do": [
                 {
                   "do": "say",
-                  "who": "Jo la Dépêche",
-                  "text": "Le maire en est à « mes chers concitoyens ». Il te reste du temps."
+                  "who": "Wazou",
+                  "text": "Dans 200 mètres, tournez à gauche. Non. L’autre gauche."
+                }
+              ]
+            },
+            {
+              "at": 45,
+              "do": [
+                {
+                  "do": "say",
+                  "who": "Wazou",
+                  "text": "Vous êtes arrivé. Je plaisante. Faites demi-tour dès que possible."
+                }
+              ]
+            },
+            {
+              "at": 90,
+              "do": [
+                {
+                  "do": "say",
+                  "who": "Wazou",
+                  "text": "Itinéraire recalculé. Il est plus long, mais il passe devant nos partenaires."
                 }
               ]
             }
@@ -81,28 +91,28 @@
         }
       ],
       "punchline": {
-        "title": "Cérémonie",
-        "text": "Le trophée est arrivé à temps. Le maire l’a brandi, remercié « celles et ceux sans qui », puis l’a fait tomber. Applaudissements nourris."
+        "title": "Vous êtes arrivé",
+        "text": "L’itinéraire menait au siège de Wazou, service des réclamations. Il est fermé. L’appli propose de s’y rendre."
       },
       "outro": [
         {
           "who": "giver",
-          "text": "Belle fête. On remet ça à la prochaine occasion. Ou sans occasion."
+          "text": "Je garde mon plan papier. Il ne me juge pas, lui."
         }
       ],
       "reward": {
-        "money": 900,
-        "xp": 180
+        "money": 850,
+        "xp": 170
       },
       "news": {
-        "headline": "Binance users withdraw $3.6bn after record crypto hack",
-        "source": "BBC News",
-        "url": "https://www.bbc.co.uk/news/articles/cwj34gdmnly4o?at_medium=RSS&at_campaign=rss",
-        "date": "2026-11-02T03:32:14.000Z",
-        "category": "culture"
+        "headline": "“Does Meta think we can’t read?” Meta abandons sketchy commercial terms update.",
+        "source": "Ars Technica",
+        "url": "https://arstechnica.com/tech-policy/2026/11/does-meta-think-we-cant-read-meta-abandons-sketchy-commercial-terms-update/",
+        "date": "2026-11-06T17:43:02.000Z",
+        "category": "app"
       },
-      "publishedAt": "2026-11-02T00:00:00.000Z",
-      "expiresAt": "2026-11-10T00:00:00.000Z"
+      "publishedAt": "2026-11-09T00:00:00.000Z",
+      "expiresAt": "2026-11-17T00:00:00.000Z"
     }
   ]
 }

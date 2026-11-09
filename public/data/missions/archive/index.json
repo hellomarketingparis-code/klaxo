@@ -2,6 +2,13 @@
   "schema": 1,
   "items": [
     {
+      "id": "weekly-2026-w46-app",
+      "title": "L’appli a toujours raison",
+      "week": "2026-W46",
+      "file": "2026-W46.json",
+      "headline": "“Does Meta think we can’t read?” Meta abandons sketchy commercial terms update."
+    },
+    {
       "id": "weekly-2026-w45-culture",
       "title": "La coupe est pleine",
       "week": "2026-W45",

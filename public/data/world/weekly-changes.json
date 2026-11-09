@@ -1,32 +1,28 @@
 {
   "schema": 1,
-  "generatedAt": "2026-11-02T06:16:15.171Z",
+  "generatedAt": "2026-11-09T06:21:33.358Z",
   "changes": [
     {
-      "id": "2026-w45-decor-dt",
-      "start": "2026-11-02T00:00:00.000Z",
-      "end": "2026-11-10T00:00:00.000Z",
-      "type": "decor",
-      "label": "Downtown est pavoisé pour la fête.",
-      "district": "downtown",
-      "kind": "garlands"
+      "id": "2026-w46-chatter",
+      "start": "2026-11-09T00:00:00.000Z",
+      "end": "2026-11-17T00:00:00.000Z",
+      "type": "chatter",
+      "label": "Une mise à jour d’appli sème la confusion.",
+      "lines": [
+        "Mon appli me dit de tourner à gauche.",
+        "Il y a un mur, à gauche.",
+        "J’ai accepté les conditions sans lire. Comme tout le monde.",
+        "Elle veut mon avis toutes les deux minutes.",
+        "Version 12.4 : « corrections mineures ». J’ai perdu ma rue."
+      ]
     },
     {
-      "id": "2026-w45-decor-old",
-      "start": "2026-11-02T00:00:00.000Z",
-      "end": "2026-11-10T00:00:00.000Z",
-      "type": "decor",
-      "label": "Des fanions flottent sur Old Town.",
-      "district": "oldtown",
-      "kind": "banners"
-    },
-    {
-      "id": "2026-w45-pietons",
-      "start": "2026-11-02T00:00:00.000Z",
-      "end": "2026-11-10T00:00:00.000Z",
-      "type": "pedestrians",
-      "label": "Il y a foule dans les rues.",
-      "factor": 1.3
+      "id": "2026-w46-billboard",
+      "start": "2026-11-09T00:00:00.000Z",
+      "end": "2026-11-17T00:00:00.000Z",
+      "type": "billboard",
+      "label": "Wazou s’affiche sur les toits.",
+      "text": "WAZOU 2.0"
     }
   ]
 }

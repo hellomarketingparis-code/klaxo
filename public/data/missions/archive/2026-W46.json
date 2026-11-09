@@ -1,0 +1,118 @@
+{
+  "schema": 1,
+  "generatedAt": "2026-11-09T06:21:33.358Z",
+  "missions": [
+    {
+      "schema": 1,
+      "id": "weekly-2026-w46-app",
+      "kind": "weekly",
+      "title": "L’appli a toujours raison",
+      "summary": "L’application Wazou a reçu une mise à jour. Elle donne désormais des itinéraires très sûrs d’eux et très faux.",
+      "giver": {
+        "name": "Jo la Dépêche",
+        "profile": "shopkeeper",
+        "at": {
+          "poi": "kiosk",
+          "dx": 2
+        }
+      },
+      "intro": [
+        {
+          "who": "giver",
+          "text": "La nouvelle version de Wazou est sortie. Elle m’a fait livrer mes journaux en passant par la plage."
+        },
+        {
+          "who": "player",
+          "text": "Elle est cassée ?"
+        },
+        {
+          "who": "giver",
+          "text": "Elle est « augmentée ». Suis ses indications jusqu’au bout, qu’on voie où elle veut en venir."
+        }
+      ],
+      "steps": [
+        {
+          "type": "get_vehicle",
+          "objective": "Trouve un véhicule",
+          "checkpoint": true
+        },
+        {
+          "type": "checkpoints",
+          "objective": "Suis les indications de Wazou",
+          "mode": "vehicle",
+          "radius": 4,
+          "timeLimit": 190,
+          "targets": [
+            {
+              "poi": "x_ouest"
+            },
+            {
+              "poi": "x_nord"
+            },
+            {
+              "poi": "x_est"
+            },
+            {
+              "poi": "wazou"
+            }
+          ],
+          "events": [
+            {
+              "at": 5,
+              "do": [
+                {
+                  "do": "say",
+                  "who": "Wazou",
+                  "text": "Dans 200 mètres, tournez à gauche. Non. L’autre gauche."
+                }
+              ]
+            },
+            {
+              "at": 45,
+              "do": [
+                {
+                  "do": "say",
+                  "who": "Wazou",
+                  "text": "Vous êtes arrivé. Je plaisante. Faites demi-tour dès que possible."
+                }
+              ]
+            },
+            {
+              "at": 90,
+              "do": [
+                {
+                  "do": "say",
+                  "who": "Wazou",
+                  "text": "Itinéraire recalculé. Il est plus long, mais il passe devant nos partenaires."
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "punchline": {
+        "title": "Vous êtes arrivé",
+        "text": "L’itinéraire menait au siège de Wazou, service des réclamations. Il est fermé. L’appli propose de s’y rendre."
+      },
+      "outro": [
+        {
+          "who": "giver",
+          "text": "Je garde mon plan papier. Il ne me juge pas, lui."
+        }
+      ],
+      "reward": {
+        "money": 850,
+        "xp": 170
+      },
+      "news": {
+        "headline": "“Does Meta think we can’t read?” Meta abandons sketchy commercial terms update.",
+        "source": "Ars Technica",
+        "url": "https://arstechnica.com/tech-policy/2026/11/does-meta-think-we-cant-read-meta-abandons-sketchy-commercial-terms-update/",
+        "date": "2026-11-06T17:43:02.000Z",
+        "category": "app"
+      },
+      "publishedAt": "2026-11-09T00:00:00.000Z",
+      "expiresAt": "2026-11-17T00:00:00.000Z"
+    }
+  ]
+}
